@@ -18,7 +18,8 @@
       --border: #E2E8F0;
       --radius: 16px;
       --danger: #EF4444;
-      --warning: #F59E0B;
+      --success: #10B981;
+      --amap-blue: #0284C7;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -26,7 +27,7 @@
 
     header {
       background: #FFFFFF;
-      padding: 20px 20px 14px;
+      padding: 16px 20px 12px;
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
@@ -36,146 +37,126 @@
     h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
     .btn-config { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
 
-    /* Day Filter Tabs */
-    .day-tabs {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 12px 20px;
-      scrollbar-width: none;
-    }
+    /* Day Tabs */
+    .day-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 12px 20px; scrollbar-width: none; }
     .day-tabs::-webkit-scrollbar { display: none; }
     .day-btn {
-      flex-shrink: 0;
-      background: #FFFFFF;
-      border: 1px solid var(--border);
-      color: var(--text-sub);
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
+      flex-shrink: 0; background: #FFFFFF; border: 1px solid var(--border); color: var(--text-sub);
+      padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer;
     }
-    .day-btn.active {
-      background: var(--primary);
-      color: #FFFFFF;
-      border-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(225, 29, 72, 0.25);
-    }
+    .day-btn.active { background: var(--primary); color: #FFFFFF; border-color: var(--primary); }
 
-    /* Content Area */
     .container { padding: 0 20px; }
-    .section-slot { margin-top: 16px; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-sub); display: flex; align-items: center; gap: 6px; }
-    
+    .section-slot { margin-top: 16px; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-sub); }
+
+    /* Place Card */
     .place-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 16px;
       margin-bottom: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      position: relative;
+      transition: all 0.2s;
     }
-    .place-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
-    .place-name { font-size: 1.05rem; font-weight: 600; color: var(--text-main); }
-    .badge-user { font-size: 0.7rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 12px; font-weight: 500; white-space: nowrap; }
-    .place-note { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px; line-height: 1.4; }
+    .place-card.is-done {
+      background: #F1F5F9;
+      opacity: 0.65;
+    }
+    .place-card.is-done .place-name {
+      text-decoration: line-through;
+      color: var(--text-sub);
+    }
 
-    .place-actions { display: flex; gap: 8px; align-items: center; }
-    .btn-map {
-      flex: 1;
+    .place-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+    .place-name { font-size: 1.05rem; font-weight: 600; }
+    .badge-user { font-size: 0.7rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 12px; font-weight: 500; }
+
+    /* Chinese Name & Copy */
+    .chinese-tag {
       display: inline-flex;
-      justify-content: center;
       align-items: center;
       gap: 6px;
-      padding: 8px 12px;
-      background: #F1F5F9;
-      color: #1E293B;
-      text-decoration: none;
-      border-radius: 10px;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      color: #991B1B;
       font-size: 0.8rem;
-      font-weight: 500;
-    }
-    .btn-edit {
-      padding: 8px 12px;
-      background: #FEF3C7;
-      color: #D97706;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.8rem;
-      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
       cursor: pointer;
-    }
-    .btn-delete {
-      padding: 8px 12px;
-      background: #FEE2E2;
-      color: var(--danger);
-      border: none;
-      border-radius: 10px;
-      font-size: 0.8rem;
       font-weight: 500;
-      cursor: pointer;
     }
+    .chinese-tag:hover { background: #FEE2E2; }
 
-    /* Floating Add Button */
-    .fab {
-      position: fixed;
-      bottom: 24px;
-      right: 20px;
-      background: var(--primary);
-      color: #FFFFFF;
-      border: none;
-      padding: 14px 20px;
-      border-radius: 30px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35);
-      cursor: pointer;
+    /* Metro Station info */
+    .metro-info {
       display: flex;
       align-items: center;
-      gap: 8px;
-      z-index: 20;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #0369A1;
+      background: #E0F2FE;
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      width: fit-content;
+      font-weight: 500;
     }
 
-    /* Modal Form */
+    .place-note { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px; line-height: 1.4; }
+
+    /* Action Buttons */
+    .place-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .btn-act {
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-gmap { background: #F1F5F9; color: #1E293B; }
+    .btn-amap { background: #E0F2FE; color: var(--amap-blue); }
+    .btn-edit { background: #FEF3C7; color: #D97706; }
+    .btn-delete { background: #FEE2E2; color: var(--danger); }
+    .btn-check {
+      background: #DCFCE7; color: #15803D; margin-left: auto; font-weight: 600;
+    }
+    .place-card.is-done .btn-check {
+      background: #CBD5E1; color: #475569;
+    }
+
+    /* FAB */
+    .fab {
+      position: fixed; bottom: 24px; right: 20px;
+      background: var(--primary); color: #FFFFFF; border: none;
+      padding: 14px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 600;
+      box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35); cursor: pointer; z-index: 20;
+    }
+
+    /* Modal */
     .modal {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: flex-end;
-      z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); display: none; align-items: flex-end; z-index: 100;
     }
     .modal-content {
-      background: #FFFFFF;
-      width: 100%;
-      border-radius: 24px 24px 0 0;
-      padding: 24px 20px;
-      max-height: 85vh;
-      overflow-y: auto;
+      background: #FFFFFF; width: 100%; border-radius: 24px 24px 0 0;
+      padding: 20px; max-height: 88vh; overflow-y: auto;
     }
-    .modal-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 16px; }
-    .form-group { margin-bottom: 12px; }
+    .modal-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 14px; }
+    .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px; }
     .form-group input, .form-group select, .form-group textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 0.95rem;
-      outline: none;
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none;
     }
     .btn-submit {
-      width: 100%;
-      padding: 14px;
-      background: var(--primary);
-      color: #FFFFFF;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-top: 10px;
-      cursor: pointer;
+      width: 100%; padding: 13px; background: var(--primary); color: #FFFFFF; border: none;
+      border-radius: 10px; font-size: 0.95rem; font-weight: 600; margin-top: 8px; cursor: pointer;
     }
   </style>
 </head>
@@ -185,14 +166,13 @@
     <div class="header-top">
       <div>
         <h1>Shanghai 2026 🇨🇳</h1>
-        <div style="font-size: 0.75rem; color: var(--text-sub);">Shared Trip Itinerary</div>
+        <div style="font-size: 0.75rem; color: var(--text-sub);">Itinerary, Metro & China Maps</div>
       </div>
       <button class="btn-config" onclick="openConfigModal()">⚙️</button>
     </div>
   </header>
 
-  <!-- Filter Days -->
-  <div class="day-tabs" id="dayTabs">
+  <div class="day-tabs">
     <button class="day-btn active" onclick="filterDay('All', this)">ทั้งหมด</button>
     <button class="day-btn" onclick="filterDay('Day 1', this)">Day 1</button>
     <button class="day-btn" onclick="filterDay('Day 2', this)">Day 2</button>
@@ -205,10 +185,9 @@
     <div style="text-align: center; color: var(--text-sub); padding: 40px 0;">กำลังโหลดแผนการเดินทาง...</div>
   </div>
 
-  <!-- Floating Add Place Button -->
   <button class="fab" onclick="openAddModal()">+ เพิ่มสถานที่</button>
 
-  <!-- Modal: Add / Edit Place -->
+  <!-- Modal: Add / Edit -->
   <div class="modal" id="entryModal">
     <div class="modal-content">
       <div class="modal-title" id="modalHeading">เพิ่มสถานที่เที่ยวเซี่ยงไฮ้</div>
@@ -233,36 +212,45 @@
         </select>
       </div>
       <div class="form-group">
-        <label>ชื่อสถานที่</label>
-        <input type="text" id="inputName" placeholder="เช่น The Bund, Yu Garden, Starbucks Reserve">
+        <label>ชื่อสถานที่ (ไทย / อังกฤษ)</label>
+        <input type="text" id="inputName" placeholder="เช่น The Bund, สวนอวี้หยวน">
       </div>
       <div class="form-group">
-        <label>ลิงก์ Google Maps / Amap (ถ้ามี)</label>
+        <label>ชื่อภาษาจีน (สำหรับเรียก Didi / แผนที่จีน)</label>
+        <input type="text" id="inputChinese" placeholder="เช่น 外滩, 豫园, 东方明珠">
+      </div>
+      <div class="form-group">
+        <label>สถานีรถไฟฟ้าใต้ดิน & ทางออก (Metro Exit)</label>
+        <input type="text" id="inputMetro" placeholder="เช่น Line 2/10 - East Nanjing Rd. (Exit 7)">
+      </div>
+      <div class="form-group">
+        <label>ลิงก์ Google Maps (ถ้ามี)</label>
         <input type="url" id="inputMap" placeholder="https://maps.app.goo.gl/...">
       </div>
       <div class="form-group">
-        <label>โน้ตย่อ / ไฮไลต์ / เมนูต้องลอง</label>
-        <textarea id="inputNote" rows="2" placeholder="เช่น เปิดไฟ 19:00 น., ซื้อตั๋วล่วงหน้า"></textarea>
+        <label>โน้ตย่อ / เมนูต้องลอง</label>
+        <textarea id="inputNote" rows="2" placeholder="เช่น เปิดไฟ 19:00 น., ขนมเสี่ยวหลงเปาร้านดัง"></textarea>
       </div>
       <div class="form-group">
-        <label>ชื่อของคุณ (ผู้เพิ่ม/แก้ไข)</label>
+        <label>ชื่อผู้เพิ่ม</label>
         <input type="text" id="inputAddedBy" placeholder="เช่น เบนซ์">
       </div>
+
       <button class="btn-submit" id="btnSubmit" onclick="savePlace()">บันทึกข้อมูล</button>
-      <button class="btn-submit" style="background:#E2E8F0; color:#333; margin-top:8px;" onclick="closeModal('entryModal')">ยกเลิก</button>
+      <button class="btn-submit" style="background:#E2E8F0; color:#333;" onclick="closeModal('entryModal')">ยกเลิก</button>
     </div>
   </div>
 
-  <!-- Modal: Config (Apps Script URL) -->
+  <!-- Config Modal -->
   <div class="modal" id="configModal">
     <div class="modal-content">
       <div class="modal-title">ตั้งค่า Google Sheet API</div>
       <div class="form-group">
         <label>Google Apps Script Web App URL</label>
-        <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+        <input type="text" id="scriptUrlInput">
       </div>
       <button class="btn-submit" onclick="saveConfig()">บันทึกการตั้งค่า</button>
-      <button class="btn-submit" style="background:#E2E8F0; color:#333; margin-top:8px;" onclick="closeModal('configModal')">ปิด</button>
+      <button class="btn-submit" style="background:#E2E8F0; color:#333;" onclick="closeModal('configModal')">ปิด</button>
     </div>
   </div>
 
@@ -270,17 +258,18 @@
     let allPlaces = [];
     let currentFilter = 'All';
 
+    // ใส่ Web App URL ของคุณไว้ตรงนี้เป็นค่าเริ่มต้น
     function getApiUrl() {
-      return localStorage.getItem('shanghai_script_url') || 'https://script.google.com/macros/s/AKfycbzWxOU-0S5rlAcKsiPstjiUNDg4_gjhq9zmPfy0BeE/dev';
+      return localStorage.getItem('shanghai_script_url') || 'https://script.google.com/macros/library/d/1EdCEMluddpinKJakGFLk-6u_fg-LzSfo6waTAtYBHXHHzyQLTK6dCN_8/2';
     }
 
     async function loadPlaces() {
       const url = getApiUrl();
       const listEl = document.getElementById('placesList');
 
-      if (!url) {
-        listEl.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 40px 20px;">
-          กรุณากดไอคอนรูปเฟือง ⚙️ ด้านบน เพื่อใส่ <b>Google Apps Script URL</b> เพื่อเชื่อมต่อฐานข้อมูลครับ
+      if (!url || url.includes('ใส่_URL')) {
+        listEl.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-sub);">
+          กรุณากดรูปเฟือง ⚙️ ด้านบน เพื่อใส่ <b>Google Apps Script URL</b> เพื่อเชื่อมต่อฐานข้อมูลครับ
         </div>`;
         return;
       }
@@ -313,7 +302,7 @@
       }
 
       if (filtered.length === 0) {
-        listEl.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 40px 0;">ยังไม่มีสถานที่สำหรับช่วงนี้ กดปุ่มด้านล่างเพื่อเพิ่มได้เลย!</div>`;
+        listEl.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:40px 0;">ยังไม่มีสถานที่สำหรับช่วงนี้ กดปุ่มด้านล่างเพื่อเพิ่มได้เลย!</div>`;
         return;
       }
 
@@ -329,11 +318,22 @@
 
           inSlot.forEach(place => {
             const card = document.createElement('div');
-            card.className = 'place-card';
+            card.className = `place-card ${place.visited ? 'is-done' : ''}`;
             
-            const mapLink = place.mapUrl 
-              ? `<a href="${place.mapUrl}" target="_blank" class="btn-map">📍 ดูพิกัดแผนที่</a>` 
-              : `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.placeName + ' Shanghai')}" target="_blank" class="btn-map">🔍 ค้นหาใน Google Maps</a>`;
+            // ลิงก์แผนที่ Amap (ค้นหาด้วยชื่อจีน หรือชื่ออังกฤษ)
+            const searchQuery = encodeURIComponent((place.chineseName || place.placeName) + ' 上海');
+            const amapUrl = `https://uri.amap.com/search?keyword=${searchQuery}`;
+            const gmapUrl = place.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.placeName + ' Shanghai')}`;
+
+            // ชื่อจีนพร้อมปุ่ม Copy
+            const chineseBlock = place.chineseName 
+              ? `<div class="chinese-tag" onclick="copyText('${place.chineseName}')" title="กดเพื่อคัดลอก">🇨🇳 ${place.chineseName} 📋</div>` 
+              : '';
+
+            // ข้อมูลสถานี Metro
+            const metroBlock = place.metro 
+              ? `<div class="metro-info">🚇 ${place.metro}</div>` 
+              : '';
 
             card.innerHTML = `
               <div class="place-header">
@@ -343,11 +343,19 @@
                 </div>
                 <span class="badge-user">${place.addedBy || 'เพื่อน'}</span>
               </div>
+              
+              ${chineseBlock}
+              ${metroBlock}
               ${place.note ? `<div class="place-note">${place.note}</div>` : ''}
+
               <div class="place-actions">
-                ${mapLink}
-                <button class="btn-edit" onclick="openEditModal(${place.rowIndex})">✏️ แก้ไข</button>
-                <button class="btn-delete" onclick="deletePlace(${place.rowIndex}, '${place.placeName}')">🗑️ ลบ</button>
+                <a href="${gmapUrl}" target="_blank" class="btn-act btn-gmap">📍 Google Maps</a>
+                <a href="${amapUrl}" target="_blank" class="btn-act btn-amap">🗺️ Amap (高德)</a>
+                <button class="btn-act btn-edit" onclick="openEditModal(${place.rowIndex})">✏️</button>
+                <button class="btn-act btn-delete" onclick="deletePlace(${place.rowIndex}, '${place.placeName}')">🗑️</button>
+                <button class="btn-act btn-check" onclick="toggleVisited(${place.rowIndex}, ${!place.visited})">
+                  ${place.visited ? '↩️ ยังไม่ไป' : '✅ ไปแล้ว'}
+                </button>
               </div>
             `;
             listEl.appendChild(card);
@@ -356,10 +364,18 @@
       });
     }
 
+    function copyText(txt) {
+      navigator.clipboard.writeText(txt).then(() => {
+        alert(`คัดลอก "${txt}" สำเร็จ! นำไปวางใน Didi หรือแอปแผนที่จีนได้เลย`);
+      });
+    }
+
     function openAddModal() {
       document.getElementById('modalHeading').innerText = 'เพิ่มสถานที่เที่ยวเซี่ยงไฮ้';
       document.getElementById('editRowIndex').value = '';
       document.getElementById('inputName').value = '';
+      document.getElementById('inputChinese').value = '';
+      document.getElementById('inputMetro').value = '';
       document.getElementById('inputMap').value = '';
       document.getElementById('inputNote').value = '';
       document.getElementById('entryModal').style.display = 'flex';
@@ -374,6 +390,8 @@
       document.getElementById('inputDay').value = place.day;
       document.getElementById('inputSlot').value = place.timeSlot;
       document.getElementById('inputName').value = place.placeName;
+      document.getElementById('inputChinese').value = place.chineseName || '';
+      document.getElementById('inputMetro').value = place.metro || '';
       document.getElementById('inputMap').value = place.mapUrl || '';
       document.getElementById('inputNote').value = place.note || '';
       document.getElementById('inputAddedBy').value = place.addedBy || '';
@@ -383,7 +401,7 @@
 
     async function savePlace() {
       const url = getApiUrl();
-      if (!url) return alert('กรุณาตั้งค่า Script URL ที่ไอคอนเฟือง ⚙️ ก่อนครับ');
+      if (!url) return alert('กรุณาตั้งค่า Script URL ก่อนครับ');
 
       const name = document.getElementById('inputName').value.trim();
       if (!name) return alert('กรุณากรอกชื่อสถานที่');
@@ -397,6 +415,8 @@
         day: document.getElementById('inputDay').value,
         timeSlot: document.getElementById('inputSlot').value,
         placeName: name,
+        chineseName: document.getElementById('inputChinese').value.trim(),
+        metro: document.getElementById('inputMetro').value.trim(),
         mapUrl: document.getElementById('inputMap').value.trim(),
         note: document.getElementById('inputNote').value.trim(),
         addedBy: document.getElementById('inputAddedBy').value.trim() || 'เพื่อนในกลุ่ม'
@@ -404,7 +424,7 @@
 
       const btn = document.getElementById('btnSubmit');
       btn.disabled = true;
-      btn.innerText = 'กำลังบันทึกลง Google Sheet...';
+      btn.innerText = 'กำลังบันทึก...';
 
       try {
         await fetch(url, {
@@ -425,11 +445,33 @@
       }
     }
 
-    async function deletePlace(rowIndex, placeName) {
-      if (!confirm(`ต้องการลบ "${placeName}" ออกจากแพลนใช่หรือไม่?`)) return;
-
+    async function toggleVisited(rowIndex, newStatus) {
       const url = getApiUrl();
-      if (!url) return alert('กรุณาตั้งค่า Script URL ก่อนครับ');
+      try {
+        // อัปเดตที่หน้าจอทันทีเพื่อความเร็ว
+        const item = allPlaces.find(p => p.rowIndex === rowIndex);
+        if (item) item.visited = newStatus;
+        renderPlaces();
+
+        // ส่งอัปเดตไป Google Sheet
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'toggleVisited',
+            rowIndex: rowIndex,
+            visited: newStatus
+          })
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function deletePlace(rowIndex, placeName) {
+      if (!confirm(`ต้องการลบ "${placeName}" ออกใช่หรือไม่?`)) return;
+      const url = getApiUrl();
 
       try {
         await fetch(url, {
