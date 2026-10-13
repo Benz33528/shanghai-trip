@@ -13,10 +13,12 @@
       --card-bg: #FFFFFF;
       --text-main: #0F172A;
       --text-sub: #64748B;
-      --primary: #E11D48; /* Red/Crimson theme for Shanghai */
+      --primary: #E11D48;
       --primary-light: #FFE4E6;
       --border: #E2E8F0;
       --radius: 16px;
+      --danger: #EF4444;
+      --warning: #F59E0B;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -79,7 +81,7 @@
     .badge-user { font-size: 0.7rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 12px; font-weight: 500; white-space: nowrap; }
     .place-note { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px; line-height: 1.4; }
 
-    .place-actions { display: flex; gap: 8px; }
+    .place-actions { display: flex; gap: 8px; align-items: center; }
     .btn-map {
       flex: 1;
       display: inline-flex;
@@ -94,7 +96,26 @@
       font-size: 0.8rem;
       font-weight: 500;
     }
-    .btn-map:hover { background: #E2E8F0; }
+    .btn-edit {
+      padding: 8px 12px;
+      background: #FEF3C7;
+      color: #D97706;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-delete {
+      padding: 8px 12px;
+      background: #FEE2E2;
+      color: var(--danger);
+      border: none;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
 
     /* Floating Add Button */
     .fab {
@@ -187,10 +208,12 @@
   <!-- Floating Add Place Button -->
   <button class="fab" onclick="openAddModal()">+ เพิ่มสถานที่</button>
 
-  <!-- Modal: Add Place -->
-  <div class="modal" id="addModal">
+  <!-- Modal: Add / Edit Place -->
+  <div class="modal" id="entryModal">
     <div class="modal-content">
-      <div class="modal-title">เพิ่มสถานที่เที่ยวเซี่ยงไฮ้</div>
+      <div class="modal-title" id="modalHeading">เพิ่มสถานที่เที่ยวเซี่ยงไฮ้</div>
+      <input type="hidden" id="editRowIndex" value="">
+      
       <div class="form-group">
         <label>วันที่</label>
         <select id="inputDay">
@@ -222,11 +245,11 @@
         <textarea id="inputNote" rows="2" placeholder="เช่น เปิดไฟ 19:00 น., ซื้อตั๋วล่วงหน้า"></textarea>
       </div>
       <div class="form-group">
-        <label>ชื่อของคุณ (ผู้เพิ่ม)</label>
+        <label>ชื่อของคุณ (ผู้เพิ่ม/แก้ไข)</label>
         <input type="text" id="inputAddedBy" placeholder="เช่น เบนซ์">
       </div>
-      <button class="btn-submit" id="btnSubmit" onclick="submitPlace()">บันทึกสถานที่</button>
-      <button class="btn-submit" style="background:#E2E8F0; color:#333; margin-top:8px;" onclick="closeModal('addModal')">ยกเลิก</button>
+      <button class="btn-submit" id="btnSubmit" onclick="savePlace()">บันทึกข้อมูล</button>
+      <button class="btn-submit" style="background:#E2E8F0; color:#333; margin-top:8px;" onclick="closeModal('entryModal')">ยกเลิก</button>
     </div>
   </div>
 
@@ -294,7 +317,6 @@
         return;
       }
 
-      // Group ตาม TimeSlot
       const slots = ['ช่วงเช้า (Morning)', 'ช่วงบ่าย (Afternoon)', 'ช่วงค่ำ (Evening)'];
       
       slots.forEach(slot => {
@@ -324,6 +346,8 @@
               ${place.note ? `<div class="place-note">${place.note}</div>` : ''}
               <div class="place-actions">
                 ${mapLink}
+                <button class="btn-edit" onclick="openEditModal(${place.rowIndex})">✏️ แก้ไข</button>
+                <button class="btn-delete" onclick="deletePlace(${place.rowIndex}, '${place.placeName}')">🗑️ ลบ</button>
               </div>
             `;
             listEl.appendChild(card);
@@ -332,14 +356,44 @@
       });
     }
 
-    async function submitPlace() {
+    function openAddModal() {
+      document.getElementById('modalHeading').innerText = 'เพิ่มสถานที่เที่ยวเซี่ยงไฮ้';
+      document.getElementById('editRowIndex').value = '';
+      document.getElementById('inputName').value = '';
+      document.getElementById('inputMap').value = '';
+      document.getElementById('inputNote').value = '';
+      document.getElementById('entryModal').style.display = 'flex';
+    }
+
+    function openEditModal(rowIndex) {
+      const place = allPlaces.find(p => p.rowIndex === rowIndex);
+      if (!place) return;
+
+      document.getElementById('modalHeading').innerText = 'แก้ไขข้อมูลสถานที่';
+      document.getElementById('editRowIndex').value = place.rowIndex;
+      document.getElementById('inputDay').value = place.day;
+      document.getElementById('inputSlot').value = place.timeSlot;
+      document.getElementById('inputName').value = place.placeName;
+      document.getElementById('inputMap').value = place.mapUrl || '';
+      document.getElementById('inputNote').value = place.note || '';
+      document.getElementById('inputAddedBy').value = place.addedBy || '';
+
+      document.getElementById('entryModal').style.display = 'flex';
+    }
+
+    async function savePlace() {
       const url = getApiUrl();
       if (!url) return alert('กรุณาตั้งค่า Script URL ที่ไอคอนเฟือง ⚙️ ก่อนครับ');
 
       const name = document.getElementById('inputName').value.trim();
       if (!name) return alert('กรุณากรอกชื่อสถานที่');
 
+      const editRow = document.getElementById('editRowIndex').value;
+      const isEdit = editRow !== '';
+
       const payload = {
+        action: isEdit ? 'edit' : 'create',
+        rowIndex: editRow,
         day: document.getElementById('inputDay').value,
         timeSlot: document.getElementById('inputSlot').value,
         placeName: name,
@@ -360,34 +414,53 @@
           body: JSON.stringify(payload)
         });
 
-        alert('เพิ่มสถานที่สำเร็จแล้ว!');
-        closeModal('addModal');
-        // Reset form
-        document.getElementById('inputName').value = '';
-        document.getElementById('inputMap').value = '';
-        document.getElementById('inputNote').value = '';
-
-        // รอ 1 วินาทีแล้วโหลดรายการใหม่
-        setTimeout(loadPlaces, 1000);
+        alert(isEdit ? 'แก้ไขข้อมูลเรียบร้อยแล้ว!' : 'เพิ่มสถานที่สำเร็จแล้ว!');
+        closeModal('entryModal');
+        setTimeout(loadPlaces, 1200);
       } catch (err) {
         alert('เกิดข้อผิดพลาด: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerText = 'บันทึกสถานที่';
+        btn.innerText = 'บันทึกข้อมูล';
       }
     }
 
-    function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+    async function deletePlace(rowIndex, placeName) {
+      if (!confirm(`ต้องการลบ "${placeName}" ออกจากแพลนใช่หรือไม่?`)) return;
+
+      const url = getApiUrl();
+      if (!url) return alert('กรุณาตั้งค่า Script URL ก่อนครับ');
+
+      try {
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'delete',
+            rowIndex: rowIndex
+          })
+        });
+
+        alert('ลบสถานที่เรียบร้อยแล้ว');
+        setTimeout(loadPlaces, 1200);
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการลบ: ' + err.message);
+      }
+    }
+
     function openConfigModal() {
       document.getElementById('scriptUrlInput').value = getApiUrl();
       document.getElementById('configModal').style.display = 'flex';
     }
+
     function saveConfig() {
       const val = document.getElementById('scriptUrlInput').value.trim();
       localStorage.setItem('shanghai_script_url', val);
       closeModal('configModal');
       loadPlaces();
     }
+
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     // Start
