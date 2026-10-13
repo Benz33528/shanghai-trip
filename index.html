@@ -11,24 +11,24 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
-      --bg: #F8FAFC;
-      --card-bg: #FFFFFF;
-      --text-main: #0F172A;
-      --text-sub: #64748B;
-      --primary: #E11D48;
-      --primary-light: #FFE4E6;
-      --border: #E2E8F0;
-      --radius: 16px;
-      --danger: #EF4444;
-      --amap-blue: #0284C7;
-      --success: #10B981;
+      --bg: #090A0F;              /* ดำมินิมอลเหลือบเทาเข้ม */
+      --card-bg: #13151D;         /* สีพื้นหลังการ์ด */
+      --text-main: #F1F5F9;       /* สีตัวหนังสือหลัก ขาวนวล */
+      --text-sub: #94A3B8;        /* สีตัวหนังสือรอง เทาอ่อน */
+      --primary: #38BDF8;         /* ฟ้า Sky Blue คลีนๆ */
+      --primary-light: rgba(56, 189, 248, 0.12);
+      --border: #222634;          /* เส้นขอบบางๆ มินิมอล */
+      --radius: 14px;
+      --danger: #F87171;
+      --amap-blue: #38BDF8;
+      --success: #34D399;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg); color: var(--text-main); padding-bottom: 90px; }
 
     header {
-      background: #FFFFFF;
+      background: #0D0F17;
       padding: 16px 20px 10px;
       border-bottom: 1px solid var(--border);
       position: sticky;
@@ -42,7 +42,7 @@
     /* Navigation Bar */
     .nav-tabs {
       display: flex;
-      background: #FFFFFF;
+      background: #0D0F17;
       border-bottom: 1px solid var(--border);
       padding: 6px 12px;
       gap: 6px;
@@ -76,10 +76,22 @@
     .filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
     .filter-scroll::-webkit-scrollbar { display: none; }
     .pill-btn {
-      flex-shrink: 0; background: #FFFFFF; border: 1px solid var(--border); color: var(--text-sub);
-      padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; cursor: pointer;
+      flex-shrink: 0;
+      background: #13151D;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
     }
-    .pill-btn.active { background: var(--primary); color: #FFFFFF; border-color: var(--primary); }
+    .pill-btn.active {
+      background: var(--primary);
+      color: #090A0F;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
 
     /* Place Card */
     .place-card {
@@ -89,25 +101,33 @@
       padding: 16px;
       margin-bottom: 12px;
       position: relative;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
       transition: all 0.2s;
     }
-    .place-card.is-done { background: #F1F5F9; opacity: 0.65; }
+    .place-card.is-done {
+      background: #0E1017;
+      border-color: #1A1D28;
+      opacity: 0.55;
+    }
     .place-card.is-done .place-name { text-decoration: line-through; color: var(--text-sub); }
 
     .place-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
-    .place-name { font-size: 1.05rem; font-weight: 600; }
-    .badge-tag { font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 500; background: #F1F5F9; color: var(--text-sub); }
+    .place-name { font-size: 1.05rem; font-weight: 600; color: var(--text-main); }
+    .badge-tag { font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 500; background: #1E2230; color: var(--text-sub); }
     .badge-user { font-size: 0.7rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 6px; }
 
     .chinese-tag {
-      display: inline-flex; align-items: center; gap: 6px; background: #FEF2F2;
-      border: 1px solid #FECACA; color: #991B1B; font-size: 0.8rem; padding: 3px 8px;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #FCA5A5;
+      font-size: 0.8rem; padding: 3px 8px;
       border-radius: 6px; margin: 4px 0 8px; cursor: pointer; font-weight: 500;
     }
     .metro-info {
       display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem;
-      color: #0369A1; background: #E0F2FE; padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; font-weight: 500;
+      color: #7DD3FC; background: rgba(56, 189, 248, 0.1);
+      padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; font-weight: 500;
     }
     .place-note { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px; line-height: 1.4; }
 
@@ -116,57 +136,59 @@
       padding: 7px 11px; border-radius: 8px; font-size: 0.76rem; font-weight: 500;
       text-decoration: none; display: inline-flex; align-items: center; gap: 4px; border: none; cursor: pointer;
     }
-    .btn-gmap { background: #F1F5F9; color: #1E293B; }
-    .btn-amap { background: #E0F2FE; color: var(--amap-blue); }
-    .btn-edit { background: #FEF3C7; color: #D97706; }
-    .btn-delete { background: #FEE2E2; color: var(--danger); }
-    .btn-check { background: #DCFCE7; color: #15803D; margin-left: auto; font-weight: 600; }
-    .place-card.is-done .btn-check { background: #CBD5E1; color: #475569; }
+    .btn-gmap { background: #1E2230; color: #E2E8F0; }
+    .btn-amap { background: rgba(56, 189, 248, 0.12); color: #38BDF8; }
+    .btn-edit { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
+    .btn-delete { background: rgba(239, 68, 68, 0.15); color: #F87171; }
+    .btn-check { background: rgba(16, 185, 129, 0.15); color: #34D399; margin-left: auto; font-weight: 600; }
+    .place-card.is-done .btn-check { background: #1E2230; color: #64748B; }
 
     /* Map View */
     #mapContainer { height: calc(100vh - 180px); width: 100%; border-radius: 14px; border: 1px solid var(--border); }
 
     /* Converter & Phrases Styles */
     .calc-card {
-      background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px;
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px;
     }
     .calc-input-group { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
     .calc-input-group input {
-      flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 10px;
-      font-size: 1.2rem; font-family: 'JetBrains Mono', monospace; font-weight: 600; outline: none;
+      flex: 1; padding: 12px; background: #090A0F; border: 1px solid var(--border); border-radius: 10px;
+      font-size: 1.2rem; font-family: 'JetBrains Mono', monospace; font-weight: 600; outline: none; color: var(--text-main);
     }
     .calc-currency { font-weight: 600; width: 60px; font-size: 1rem; color: var(--text-sub); }
 
     .phrase-item {
-      background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px;
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px;
       display: flex; justify-content: space-between; align-items: center; gap: 10px;
     }
-    .phrase-cn { font-size: 1.15rem; font-weight: 600; color: #991B1B; margin-bottom: 2px; }
-    .phrase-py { font-size: 0.78rem; color: #64748B; font-family: 'JetBrains Mono', monospace; }
+    .phrase-cn { font-size: 1.15rem; font-weight: 600; color: #F87171; margin-bottom: 2px; }
+    .phrase-py { font-size: 0.78rem; color: var(--text-sub); font-family: 'JetBrains Mono', monospace; }
     .phrase-th { font-size: 0.85rem; color: var(--text-main); margin-top: 2px; }
 
     /* FAB */
     .fab {
-      position: fixed; bottom: 24px; right: 20px; background: var(--primary); color: #FFFFFF; border: none;
+      position: fixed; bottom: 24px; right: 20px; background: var(--primary); color: #090A0F; border: none;
       padding: 14px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 600;
-      box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35); cursor: pointer; z-index: 99;
+      box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25); cursor: pointer; z-index: 99;
     }
 
     /* Modal Form */
     .modal {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7);
       display: none; align-items: flex-end; z-index: 1000;
     }
     .modal-content {
-      background: #FFFFFF; width: 100%; border-radius: 24px 24px 0 0; padding: 20px; max-height: 88vh; overflow-y: auto;
+      background: #13151D; width: 100%; border-radius: 24px 24px 0 0; padding: 20px; max-height: 88vh; overflow-y: auto;
+      border-top: 1px solid var(--border);
     }
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px; }
     .form-group input, .form-group select, .form-group textarea {
-      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none;
+      width: 100%; padding: 10px 12px; background: #090A0F; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 0.9rem; outline: none; color: var(--text-main);
     }
     .btn-submit {
-      width: 100%; padding: 13px; background: var(--primary); color: #FFFFFF; border: none;
+      width: 100%; padding: 13px; background: var(--primary); color: #090A0F; border: none;
       border-radius: 10px; font-size: 0.95rem; font-weight: 600; margin-top: 8px; cursor: pointer;
     }
     .autofill-hint {
@@ -231,7 +253,7 @@
     <div class="calc-card">
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
         <span>เรทแปลงค่าเงิน (ปรับเปลี่ยนได้)</span>
-        <span>1 CNY ≈ <input type="number" id="rateInput" value="5.00" step="0.05" style="width:65px; padding:2px 4px; text-align:center;" onchange="convertCNY()"> THB</span>
+        <span>1 CNY ≈ <input type="number" id="rateInput" value="5.00" step="0.05" style="width:65px; padding:2px 4px; text-align:center; background:#090A0F; color:#FFF; border:1px solid var(--border);" onchange="convertCNY()"> THB</span>
       </div>
       
       <div class="calc-input-group">
@@ -246,7 +268,7 @@
     </div>
 
     <div class="calc-card">
-      <div style="font-size:0.9rem; font-weight:600; margin-bottom:8px;">💡 สรุปราคาเทียบคร่าวๆ</div>
+      <div style="font-size:0.9rem; font-weight:600; margin-bottom:8px; color:var(--primary);">💡 สรุปราคาเทียบคร่าวๆ</div>
       <div style="font-size:0.85rem; color:var(--text-sub); line-height:1.6;">
         • ชานมไข่มุกทั่วไป: 15–20 ¥ (~75–100 ฿)<br>
         • รถไฟใต้ดิน Metro: 3–6 ¥ (~15–30 ฿)<br>
@@ -268,7 +290,7 @@
   <!-- Modal: Add/Edit Place -->
   <div class="modal" id="entryModal">
     <div class="modal-content">
-      <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px;" id="modalHeading">เพิ่มสถานที่เที่ยว</div>
+      <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px; color:var(--text-main);" id="modalHeading">เพิ่มสถานที่เที่ยว</div>
       <input type="hidden" id="editRowIndex" value="">
 
       <div class="form-group">
@@ -335,20 +357,20 @@
       </div>
 
       <button class="btn-submit" id="btnSubmit" onclick="savePlace()">บันทึกข้อมูล</button>
-      <button class="btn-submit" style="background:#E2E8F0; color:#333;" onclick="closeModal('entryModal')">ยกเลิก</button>
+      <button class="btn-submit" style="background:#1E2230; color:var(--text-sub);" onclick="closeModal('entryModal')">ยกเลิก</button>
     </div>
   </div>
 
   <!-- Config Modal -->
   <div class="modal" id="configModal">
     <div class="modal-content">
-      <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px;">ตั้งค่า Google Sheet API</div>
+      <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px; color:var(--text-main);">ตั้งค่า Google Sheet API</div>
       <div class="form-group">
         <label>Apps Script Web App URL</label>
         <input type="text" id="scriptUrlInput">
       </div>
       <button class="btn-submit" onclick="saveConfig()">บันทึก</button>
-      <button class="btn-submit" style="background:#E2E8F0; color:#333;" onclick="closeModal('configModal')">ปิด</button>
+      <button class="btn-submit" style="background:#1E2230; color:var(--text-sub);" onclick="closeModal('configModal')">ปิด</button>
     </div>
   </div>
 
@@ -361,139 +383,25 @@
     let mapInstance = null;
     let markersLayer = null;
 
-    // ฐานข้อมูล Landmark เซี่ยงไฮ้ยอดฮิตสำหรับ Auto-Fill และ Suggest
     const landmarkDatabase = [
-      {
-        name: "The Bund",
-        aliases: ["the bund", "เดอะบันด์", "หาดไว่ทาน", "ไว่ทาน", "waitan"],
-        cn: "外滩",
-        metro: "Line 2/10 - East Nanjing Rd. (Exit 7)",
-        cat: "📸 Landmark",
-        coords: [31.2397, 121.4904]
-      },
-      {
-        name: "Yu Garden",
-        aliases: ["yu garden", "yuyuan", "สวนอวี้หยวน", "อวี้หยวน", "ตลาดร้อยปี"],
-        cn: "豫园",
-        metro: "Line 10/14 - Yuyuan Station (Exit 1)",
-        cat: "📸 Landmark",
-        coords: [31.2272, 121.4921]
-      },
-      {
-        name: "Oriental Pearl Tower",
-        aliases: ["oriental pearl", "หอไข่มุก", "หอไข่มุกตะวันออก"],
-        cn: "东方明珠广播电视塔",
-        metro: "Line 2 - Lujiazui (Exit 1)",
-        cat: "📸 Landmark",
-        coords: [31.2398, 121.4998]
-      },
-      {
-        name: "Shanghai Tower",
-        aliases: ["shanghai tower", "ตึกเซี่ยงไฮ้ทาวเวอร์", "เซี่ยงไฮ้ทาวเวอร์"],
-        cn: "上海中心大厦",
-        metro: "Line 2/14 - Lujiazui (Exit 9)",
-        cat: "📸 Landmark",
-        coords: [31.2355, 121.5015]
-      },
-      {
-        name: "Nanjing Road Pedestrian Street",
-        aliases: ["nanjing road", "ถนนคนเดินนานจิง", "นานจิงตงลู่", "ถนนนานจิง"],
-        cn: "南京东路步行街",
-        metro: "Line 2/10 - East Nanjing Rd. (Exit 1/4)",
-        cat: "🛍️ ช้อปปิ้ง",
-        coords: [31.2359, 121.4789]
-      },
-      {
-        name: "Shanghai Disneyland",
-        aliases: ["disneyland", "disney", "ดิสนีย์แลนด์", "เซี่ยงไฮ้ดิสนีย์แลนด์"],
-        cn: "上海迪士尼度假区",
-        metro: "Line 11 - Disney Resort (Exit 1)",
-        cat: "🎢 เที่ยว/กิจกรรม",
-        coords: [31.1440, 121.6570]
-      },
-      {
-        name: "Starbucks Reserve Roastery",
-        aliases: ["starbucks reserve", "สตาร์บัคส์รีเสิร์ฟ", "สตาร์บัคส์"],
-        cn: "星巴克臻选上海烘焙工坊",
-        metro: "Line 2/12/13 - West Nanjing Rd. (Exit 11)",
-        cat: "☕ คาเฟ่",
-        coords: [31.2312, 121.4604]
-      },
-      {
-        name: "Xintiandi",
-        aliases: ["xintiandi", "ซินเทียนตี้", "ย่านซินเทียนตี้"],
-        cn: "新天地",
-        metro: "Line 10/13 - Xintiandi (Exit 6)",
-        cat: "🛍️ ช้อปปิ้ง",
-        coords: [31.2186, 121.4754]
-      },
-      {
-        name: "Tianzifang",
-        aliases: ["tianzifang", "เถียนจื่อฟาง"],
-        cn: "田子坊",
-        metro: "Line 9 - Dapuqiao (Exit 1)",
-        cat: "🛍️ ช้อปปิ้ง",
-        coords: [31.2091, 121.4688]
-      },
-      {
-        name: "Jing'an Temple",
-        aliases: ["jingan temple", "jing'an", "วัดจิ้งอัน", "จิ้งอัน"],
-        cn: "静安寺",
-        metro: "Line 2/7/14 - Jing'an Temple (Exit 1)",
-        cat: "📸 Landmark",
-        coords: [31.2235, 121.4465]
-      },
-      {
-        name: "Jade Buddha Temple",
-        aliases: ["jade buddha", "วัดพระหยก"],
-        cn: "玉佛禅寺",
-        metro: "Line 13 - Jiangning Rd. (Exit 3)",
-        cat: "📸 Landmark",
-        coords: [31.2427, 121.4429]
-      },
-      {
-        name: "Wukang Road",
-        aliases: ["wukang road", "wukang building", "อาคารหวู่คัง", "ถนนหวู่คัง"],
-        cn: "武康大楼 / 武康路",
-        metro: "Line 10/11 - Jiaotong University (Exit 7)",
-        cat: "📸 Landmark",
-        coords: [31.2052, 121.4398]
-      },
-      {
-        name: "People's Square",
-        aliases: ["peoples square", "people's square", "จัตุรัสประชาชน"],
-        cn: "人民广场",
-        metro: "Line 1/2/8 - People's Square (Exit 19)",
-        cat: "📸 Landmark",
-        coords: [31.2304, 121.4737]
-      },
-      {
-        name: "Zhujiajiao Water Town",
-        aliases: ["zhujiajiao", "จูเจียเจี่ยว", "เมืองโบราณจูเจียเจี่ยว"],
-        cn: "朱家角古镇",
-        metro: "Line 17 - Zhujiajiao (Exit 1)",
-        cat: "📸 Landmark",
-        coords: [31.1114, 121.0531]
-      },
-      {
-        name: "North Bund Green Land",
-        aliases: ["north bund", "ไว่ทานเหนือ", "นอร์ทบันด์"],
-        cn: "北外滩滨江绿地",
-        metro: "Line 12 - International Cruise Terminal (Exit 3)",
-        cat: "📸 Landmark",
-        coords: [31.2488, 121.4988]
-      },
-      {
-        name: "Pop Mart Global Flagship",
-        aliases: ["pop mart", "ป๊อปมาร์ท", "popmart"],
-        cn: "泡泡玛特全球旗舰店 (南京东路)",
-        metro: "Line 2/10 - East Nanjing Rd. (Exit 2)",
-        cat: "🛍️ ช้อปปิ้ง",
-        coords: [31.2372, 121.4820]
-      }
+      { name: "The Bund", aliases: ["the bund", "เดอะบันด์", "หาดไว่ทาน", "ไว่ทาน", "waitan"], cn: "外滩", metro: "Line 2/10 - East Nanjing Rd. (Exit 7)", cat: "📸 Landmark", coords: [31.2397, 121.4904] },
+      { name: "Yu Garden", aliases: ["yu garden", "yuyuan", "สวนอวี้หยวน", "อวี้หยวน", "ตลาดร้อยปี"], cn: "豫园", metro: "Line 10/14 - Yuyuan Station (Exit 1)", cat: "📸 Landmark", coords: [31.2272, 121.4921] },
+      { name: "Oriental Pearl Tower", aliases: ["oriental pearl", "หอไข่มุก", "หอไข่มุกตะวันออก"], cn: "东方明珠广播电视塔", metro: "Line 2 - Lujiazui (Exit 1)", cat: "📸 Landmark", coords: [31.2398, 121.4998] },
+      { name: "Shanghai Tower", aliases: ["shanghai tower", "ตึกเซี่ยงไฮ้ทาวเวอร์", "เซี่ยงไฮ้ทาวเวอร์"], cn: "上海中心大厦", metro: "Line 2/14 - Lujiazui (Exit 9)", cat: "📸 Landmark", coords: [31.2355, 121.5015] },
+      { name: "Nanjing Road Pedestrian Street", aliases: ["nanjing road", "ถนนคนเดินนานจิง", "นานจิงตงลู่", "ถนนนานจิง"], cn: "南京东路步行街", metro: "Line 2/10 - East Nanjing Rd. (Exit 1/4)", cat: "🛍️ ช้อปปิ้ง", coords: [31.2359, 121.4789] },
+      { name: "Shanghai Disneyland", aliases: ["disneyland", "disney", "ดิสนีย์แลนด์", "เซี่ยงไฮ้ดิสนีย์แลนด์"], cn: "上海迪士尼度假区", metro: "Line 11 - Disney Resort (Exit 1)", cat: "🎢 เที่ยว/กิจกรรม", coords: [31.1440, 121.6570] },
+      { name: "Starbucks Reserve Roastery", aliases: ["starbucks reserve", "สตาร์บัคส์รีเสิร์ฟ", "สตาร์บัคส์"], cn: "星巴克臻选上海烘焙工坊", metro: "Line 2/12/13 - West Nanjing Rd. (Exit 11)", cat: "☕ คาเฟ่", coords: [31.2312, 121.4604] },
+      { name: "Xintiandi", aliases: ["xintiandi", "ซินเทียนตี้", "ย่านซินเทียนตี้"], cn: "新天地", metro: "Line 10/13 - Xintiandi (Exit 6)", cat: "🛍️ ช้อปปิ้ง", coords: [31.2186, 121.4754] },
+      { name: "Tianzifang", aliases: ["tianzifang", "เถียนจื่อฟาง"], cn: "田子坊", metro: "Line 9 - Dapuqiao (Exit 1)", cat: "🛍️ ช้อปปิ้ง", coords: [31.2091, 121.4688] },
+      { name: "Jing'an Temple", aliases: ["jingan temple", "jing'an", "วัดจิ้งอัน", "จิ้งอัน"], cn: "静安寺", metro: "Line 2/7/14 - Jing'an Temple (Exit 1)", cat: "📸 Landmark", coords: [31.2235, 121.4465] },
+      { name: "Jade Buddha Temple", aliases: ["jade buddha", "วัดพระหยก"], cn: "玉佛禅寺", metro: "Line 13 - Jiangning Rd. (Exit 3)", cat: "📸 Landmark", coords: [31.2427, 121.4429] },
+      { name: "Wukang Road", aliases: ["wukang road", "wukang building", "อาคารหวู่คัง", "ถนนหวู่คัง"], cn: "武康大楼 / 武康路", metro: "Line 10/11 - Jiaotong University (Exit 7)", cat: "📸 Landmark", coords: [31.2052, 121.4398] },
+      { name: "People's Square", aliases: ["peoples square", "people's square", "จัตุรัสประชาชน"], cn: "人民广场", metro: "Line 1/2/8 - People's Square (Exit 19)", cat: "📸 Landmark", coords: [31.2304, 121.4737] },
+      { name: "Zhujiajiao Water Town", aliases: ["zhujiajiao", "จูเจียเจี่ยว", "เมืองโบราณจูเจียเจี่ยว"], cn: "朱家角古镇", metro: "Line 17 - Zhujiajiao (Exit 1)", cat: "📸 Landmark", coords: [31.1114, 121.0531] },
+      { name: "North Bund Green Land", aliases: ["north bund", "ไว่ทานเหนือ", "นอร์ทบันด์"], cn: "北外滩滨江绿地", metro: "Line 12 - International Cruise Terminal (Exit 3)", cat: "📸 Landmark", coords: [31.2488, 121.4988] },
+      { name: "Pop Mart Global Flagship", aliases: ["pop mart", "ป๊อปมาร์ท", "popmart"], cn: "泡泡玛特全球旗舰店 (南京东路)", metro: "Line 2/10 - East Nanjing Rd. (Exit 2)", cat: "🛍️ ช้อปปิ้ง", coords: [31.2372, 121.4820] }
     ];
 
-    // โหลด Datalist presets ใส่ในช่อง Input
     function populatePresets() {
       const datalist = document.getElementById('landmarkPresets');
       datalist.innerHTML = '';
@@ -505,7 +413,6 @@
       });
     }
 
-    // ฟังก์ชัน Auto-Fill เมื่อผู้ใช้พิมพ์หรือเลือกชื่อสถานที่
     function handlePlaceNameInput(val) {
       const query = val.trim().toLowerCase();
       if (!query) {
@@ -527,7 +434,6 @@
       }
     }
 
-    // คำศัพท์จีนเอาตัวรอดพร้อมพินอิน
     const survivalPhrases = [
       { cn: "不要香菜", py: "Bù yào xiāngcài", th: "ไม่ใส่ผักชี 🌿" },
       { cn: "买单 / 结账", py: "Mǎidān / Jiézhàng", th: "เช็กบิล / คิดเงิน 💵" },
@@ -545,7 +451,6 @@
       return localStorage.getItem('shanghai_script_url') || 'https://script.google.com/macros/s/AKfycbw_fO_B74NclMzV_ax5Wp9MYQqobYs8DoSPYXuioo9aAl8KhFklyVK0LsIYZIgab9gE/exec';
     }
 
-    // View Navigation
     function switchView(viewName, btn) {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
@@ -560,7 +465,6 @@
       }
     }
 
-    // 1. Places CRUD & Render
     async function loadPlaces() {
       const url = getApiUrl();
       const listEl = document.getElementById('placesList');
@@ -659,7 +563,6 @@
       });
     }
 
-    // 2. Interactive Map (Leaflet)
     function initMap() {
       if (!mapInstance) {
         mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
@@ -689,7 +592,7 @@
         const amapUrl = `https://uri.amap.com/search?keyword=${encodeURIComponent((p.chineseName || p.placeName) + ' 上海')}`;
 
         marker.bindPopup(`
-          <div style="font-family:'Prompt',sans-serif; min-width:140px;">
+          <div style="font-family:'Prompt',sans-serif; min-width:140px; color:#1E293B;">
             <b>${p.placeName}</b><br>
             <span style="color:#991B1B;">${p.chineseName || ''}</span><br>
             <small style="color:#0284C7;">🚇 ${p.metro || '-'}</small><br>
@@ -699,7 +602,6 @@
       });
     }
 
-    // 3. Currency Converter
     function convertCNY() {
       const cny = parseFloat(document.getElementById('cnyInput').value);
       const rate = parseFloat(document.getElementById('rateInput').value) || 5.0;
@@ -720,7 +622,6 @@
       }
     }
 
-    // 4. Survival Phrases Render
     function renderPhrases() {
       const list = document.getElementById('phrasesList');
       list.innerHTML = '';
@@ -733,13 +634,12 @@
             <div class="phrase-py">${item.py}</div>
             <div class="phrase-th">${item.th}</div>
           </div>
-          <button class="btn-act" style="background:#FEF2F2; color:#991B1B; font-size:0.85rem;" onclick="copyText('${item.cn}')">📋 ก๊อปปี้</button>
+          <button class="btn-act" style="background:rgba(239, 68, 68, 0.15); color:#F87171; font-size:0.85rem;" onclick="copyText('${item.cn}')">📋 ก๊อปปี้</button>
         `;
         list.appendChild(div);
       });
     }
 
-    // Modal & CRUD Operations
     function openAddModal() {
       document.getElementById('modalHeading').innerText = 'เพิ่มสถานที่เที่ยว';
       document.getElementById('editRowIndex').value = '';
