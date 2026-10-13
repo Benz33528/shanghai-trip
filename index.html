@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Shanghai Trip Planner 🇨🇳</title>
+  <title>Shanghai Super App 🇨🇳</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
       --bg: #F8FAFC;
@@ -18,8 +20,8 @@
       --border: #E2E8F0;
       --radius: 16px;
       --danger: #EF4444;
-      --success: #10B981;
       --amap-blue: #0284C7;
+      --success: #10B981;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -27,27 +29,57 @@
 
     header {
       background: #FFFFFF;
-      padding: 16px 20px 12px;
+      padding: 16px 20px 10px;
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 100;
     }
     .header-top { display: flex; justify-content: space-between; align-items: center; }
     h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
     .btn-config { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
 
-    /* Day Tabs */
-    .day-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 12px 20px; scrollbar-width: none; }
-    .day-tabs::-webkit-scrollbar { display: none; }
-    .day-btn {
-      flex-shrink: 0; background: #FFFFFF; border: 1px solid var(--border); color: var(--text-sub);
-      padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer;
+    /* Navigation Bar (Bottom or Sub-header) */
+    .nav-tabs {
+      display: flex;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      padding: 6px 12px;
+      gap: 6px;
     }
-    .day-btn.active { background: var(--primary); color: #FFFFFF; border-color: var(--primary); }
+    .nav-btn {
+      flex: 1;
+      padding: 8px 4px;
+      background: none;
+      border: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-sub);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .nav-btn.active {
+      color: var(--primary);
+      background: var(--primary-light);
+      font-weight: 600;
+    }
 
-    .container { padding: 0 20px; }
-    .section-slot { margin-top: 16px; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-sub); }
+    /* Views */
+    .view-content { display: none; padding: 16px 20px; }
+    .view-content.active { display: block; }
+
+    /* Day & Category Filters */
+    .filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .pill-btn {
+      flex-shrink: 0; background: #FFFFFF; border: 1px solid var(--border); color: var(--text-sub);
+      padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; cursor: pointer;
+    }
+    .pill-btn.active { background: var(--primary); color: #FFFFFF; border-color: var(--primary); }
 
     /* Place Card */
     .place-card {
@@ -57,98 +89,77 @@
       padding: 16px;
       margin-bottom: 12px;
       position: relative;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.02);
       transition: all 0.2s;
     }
-    .place-card.is-done {
-      background: #F1F5F9;
-      opacity: 0.65;
-    }
-    .place-card.is-done .place-name {
-      text-decoration: line-through;
-      color: var(--text-sub);
-    }
+    .place-card.is-done { background: #F1F5F9; opacity: 0.65; }
+    .place-card.is-done .place-name { text-decoration: line-through; color: var(--text-sub); }
 
     .place-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
     .place-name { font-size: 1.05rem; font-weight: 600; }
-    .badge-user { font-size: 0.7rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 12px; font-weight: 500; }
+    .badge-tag { font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 500; background: #F1F5F9; color: var(--text-sub); }
+    .badge-user { font-size: 0.7rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 6px; }
 
-    /* Chinese Name & Copy */
     .chinese-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #FEF2F2;
-      border: 1px solid #FECACA;
-      color: #991B1B;
-      font-size: 0.8rem;
-      padding: 3px 8px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; background: #FEF2F2;
+      border: 1px solid #FECACA; color: #991B1B; font-size: 0.8rem; padding: 3px 8px;
+      border-radius: 6px; margin: 4px 0 8px; cursor: pointer; font-weight: 500;
     }
-    .chinese-tag:hover { background: #FEE2E2; }
-
-    /* Metro Station info */
     .metro-info {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: #0369A1;
-      background: #E0F2FE;
-      padding: 4px 8px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      width: fit-content;
-      font-weight: 500;
+      display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem;
+      color: #0369A1; background: #E0F2FE; padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; font-weight: 500;
     }
-
     .place-note { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px; line-height: 1.4; }
 
-    /* Action Buttons */
     .place-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .btn-act {
-      padding: 7px 11px;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      font-weight: 500;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      border: none;
-      cursor: pointer;
+      padding: 7px 11px; border-radius: 8px; font-size: 0.76rem; font-weight: 500;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 4px; border: none; cursor: pointer;
     }
     .btn-gmap { background: #F1F5F9; color: #1E293B; }
     .btn-amap { background: #E0F2FE; color: var(--amap-blue); }
     .btn-edit { background: #FEF3C7; color: #D97706; }
     .btn-delete { background: #FEE2E2; color: var(--danger); }
-    .btn-check {
-      background: #DCFCE7; color: #15803D; margin-left: auto; font-weight: 600;
+    .btn-check { background: #DCFCE7; color: #15803D; margin-left: auto; font-weight: 600; }
+    .place-card.is-done .btn-check { background: #CBD5E1; color: #475569; }
+
+    /* Map View */
+    #mapContainer { height: calc(100vh - 180px); width: 100%; border-radius: 14px; border: 1px solid var(--border); }
+
+    /* Converter & Phrases Styles */
+    .calc-card {
+      background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px;
     }
-    .place-card.is-done .btn-check {
-      background: #CBD5E1; color: #475569;
+    .calc-input-group { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .calc-input-group input {
+      flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 10px;
+      font-size: 1.2rem; font-family: 'JetBrains Mono', monospace; font-weight: 600; outline: none;
     }
+    .calc-currency { font-weight: 600; width: 60px; font-size: 1rem; color: var(--text-sub); }
+
+    .phrase-item {
+      background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    .phrase-cn { font-size: 1.15rem; font-weight: 600; color: #991B1B; margin-bottom: 2px; }
+    .phrase-py { font-size: 0.78rem; color: #64748B; font-family: 'JetBrains Mono', monospace; }
+    .phrase-th { font-size: 0.85rem; color: var(--text-main); margin-top: 2px; }
 
     /* FAB */
     .fab {
-      position: fixed; bottom: 24px; right: 20px;
-      background: var(--primary); color: #FFFFFF; border: none;
+      position: fixed; bottom: 24px; right: 20px; background: var(--primary); color: #FFFFFF; border: none;
       padding: 14px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 600;
-      box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35); cursor: pointer; z-index: 20;
+      box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35); cursor: pointer; z-index: 99;
     }
 
-    /* Modal */
+    /* Modal Form */
     .modal {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5); display: none; align-items: flex-end; z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
+      display: none; align-items: flex-end; z-index: 1000;
     }
     .modal-content {
-      background: #FFFFFF; width: 100%; border-radius: 24px 24px 0 0;
-      padding: 20px; max-height: 88vh; overflow-y: auto;
+      background: #FFFFFF; width: 100%; border-radius: 24px 24px 0 0; padding: 20px; max-height: 88vh; overflow-y: auto;
     }
-    .modal-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 14px; }
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px; }
     .form-group input, .form-group select, .form-group textarea {
@@ -166,33 +177,108 @@
     <div class="header-top">
       <div>
         <h1>Shanghai 2026 🇨🇳</h1>
-        <div style="font-size: 0.75rem; color: var(--text-sub);">Itinerary, Metro & China Maps</div>
+        <div style="font-size: 0.72rem; color: var(--text-sub);">All-in-One Trip Assistant</div>
       </div>
       <button class="btn-config" onclick="openConfigModal()">⚙️</button>
     </div>
   </header>
 
-  <div class="day-tabs">
-    <button class="day-btn active" onclick="filterDay('All', this)">ทั้งหมด</button>
-    <button class="day-btn" onclick="filterDay('Day 1', this)">Day 1</button>
-    <button class="day-btn" onclick="filterDay('Day 2', this)">Day 2</button>
-    <button class="day-btn" onclick="filterDay('Day 3', this)">Day 3</button>
-    <button class="day-btn" onclick="filterDay('Day 4', this)">Day 4</button>
-    <button class="day-btn" onclick="filterDay('Day 5', this)">Day 5</button>
+  <!-- Top Navigation Tabs -->
+  <div class="nav-tabs">
+    <button class="nav-btn active" onclick="switchView('itinerary', this)"><span>📋</span>แพลนเที่ยว</button>
+    <button class="nav-btn" onclick="switchView('map', this)"><span>🗺️</span>แผนที่รวม</button>
+    <button class="nav-btn" onclick="switchView('converter', this)"><span>💴</span>คำนวณเงิน</button>
+    <button class="nav-btn" onclick="switchView('phrases', this)"><span>🗣️</span>ภาษาจีน</button>
   </div>
 
-  <div class="container" id="placesList">
-    <div style="text-align: center; color: var(--text-sub); padding: 40px 0;">กำลังโหลดแผนการเดินทาง...</div>
+  <!-- VIEW 1: ITINERARY LIST -->
+  <div id="view-itinerary" class="view-content active">
+    <!-- Day filter -->
+    <div class="filter-scroll" id="dayFilter">
+      <button class="pill-btn active" onclick="filterDay('All', this)">ทั้งหมด</button>
+      <button class="pill-btn" onclick="filterDay('Day 1', this)">Day 1</button>
+      <button class="pill-btn" onclick="filterDay('Day 2', this)">Day 2</button>
+      <button class="pill-btn" onclick="filterDay('Day 3', this)">Day 3</button>
+      <button class="pill-btn" onclick="filterDay('Day 4', this)">Day 4</button>
+      <button class="pill-btn" onclick="filterDay('Day 5', this)">Day 5</button>
+    </div>
+
+    <!-- Category filter -->
+    <div class="filter-scroll" id="catFilter">
+      <button class="pill-btn active" onclick="filterCategory('All', this)">ทุกหมวด</button>
+      <button class="pill-btn" onclick="filterCategory('🍜 ของกิน', this)">🍜 ของกิน</button>
+      <button class="pill-btn" onclick="filterCategory('📸 Landmark', this)">📸 Landmark</button>
+      <button class="pill-btn" onclick="filterCategory('🛍️ ช้อปปิ้ง', this)">🛍️ ช้อปปิ้ง</button>
+      <button class="pill-btn" onclick="filterCategory('☕ คาเฟ่', this)">☕ คาเฟ่</button>
+      <button class="pill-btn" onclick="filterCategory('🎢 เที่ยว/กิจกรรม', this)">🎢 เที่ยว/กิจกรรม</button>
+    </div>
+
+    <div id="placesList">
+      <div style="text-align: center; color: var(--text-sub); padding: 40px 0;">กำลังโหลดข้อมูล...</div>
+    </div>
   </div>
 
-  <button class="fab" onclick="openAddModal()">+ เพิ่มสถานที่</button>
+  <!-- VIEW 2: INTERACTIVE MAP -->
+  <div id="view-map" class="view-content" style="padding: 10px;">
+    <div id="mapContainer"></div>
+  </div>
 
-  <!-- Modal: Add / Edit -->
+  <!-- VIEW 3: CURRENCY CONVERTER -->
+  <div id="view-converter" class="view-content">
+    <div class="calc-card">
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
+        <span>เรทแปลงค่าเงิน (ปรับเปลี่ยนได้)</span>
+        <span>1 CNY ≈ <input type="number" id="rateInput" value="5.00" step="0.05" style="width:65px; padding:2px 4px; text-align:center;" onchange="convertCNY()"> THB</span>
+      </div>
+      
+      <div class="calc-input-group">
+        <span class="calc-currency">CNY ¥</span>
+        <input type="number" id="cnyInput" placeholder="0" oninput="convertCNY()">
+      </div>
+      <div style="text-align:center; color:var(--text-sub); margin:-4px 0 8px;">⇅</div>
+      <div class="calc-input-group">
+        <span class="calc-currency">THB ฿</span>
+        <input type="number" id="thbInput" placeholder="0" oninput="convertTHB()">
+      </div>
+    </div>
+
+    <div class="calc-card">
+      <div style="font-size:0.9rem; font-weight:600; margin-bottom:8px;">💡 สรุปราคาเทียบคร่าวๆ</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); line-height:1.6;">
+        • ชานมไข่มุกทั่วไป: 15–20 ¥ (~75–100 ฿)<br>
+        • รถไฟใต้ดิน Metro: 3–6 ¥ (~15–30 ฿)<br>
+        • แท็กซี่ Didi เริ่มต้น: 14–16 ¥ (~70–80 ฿)<br>
+        • เสี่ยวหลงเปาร้านดัง: 30–45 ¥ (~150–225 ฿)
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: SURVIVAL CHINESE -->
+  <div id="view-phrases" class="view-content">
+    <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">แตะที่การ์ดเพื่อคัดลอก หรือกด 🔍 เพื่อขยายตัวอักษรให้คนจีนอ่าน</div>
+    <div id="phrasesList"></div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fabAdd" onclick="openAddModal()">+ เพิ่มสถานที่</button>
+
+  <!-- Modal: Add/Edit Place -->
   <div class="modal" id="entryModal">
     <div class="modal-content">
-      <div class="modal-title" id="modalHeading">เพิ่มสถานที่เที่ยวเซี่ยงไฮ้</div>
+      <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px;" id="modalHeading">เพิ่มสถานที่เที่ยว</div>
       <input type="hidden" id="editRowIndex" value="">
-      
+
+      <div class="form-group">
+        <label>หมวดหมู่</label>
+        <select id="inputCat">
+          <option value="📸 Landmark">📸 Landmark / จุดถ่ายรูป</option>
+          <option value="🍜 ของกิน">🍜 ของกิน / อาหาร</option>
+          <option value="☕ คาเฟ่">☕ คาเฟ่ / เครื่องดื่ม</option>
+          <option value="🛍️ ช้อปปิ้ง">🛍️ ช้อปปิ้ง</option>
+          <option value="🎢 เที่ยว/กิจกรรม">🎢 เที่ยว / กิจกรรม</option>
+        </select>
+      </div>
+
       <div class="form-group">
         <label>วันที่</label>
         <select id="inputDay">
@@ -203,6 +289,7 @@
           <option value="Day 5">Day 5</option>
         </select>
       </div>
+
       <div class="form-group">
         <label>ช่วงเวลา</label>
         <select id="inputSlot">
@@ -211,26 +298,32 @@
           <option value="ช่วงค่ำ (Evening)">ช่วงค่ำ (Evening)</option>
         </select>
       </div>
+
       <div class="form-group">
         <label>ชื่อสถานที่ (ไทย / อังกฤษ)</label>
         <input type="text" id="inputName" placeholder="เช่น The Bund, สวนอวี้หยวน">
       </div>
+
       <div class="form-group">
-        <label>ชื่อภาษาจีน (สำหรับเรียก Didi / แผนที่จีน)</label>
-        <input type="text" id="inputChinese" placeholder="เช่น 外滩, 豫园, 东方明珠">
+        <label>ชื่อภาษาจีน (สำหรับแผนที่จีน / Didi)</label>
+        <input type="text" id="inputChinese" placeholder="เช่น 外滩, 豫园">
       </div>
+
       <div class="form-group">
-        <label>สถานีรถไฟฟ้าใต้ดิน & ทางออก (Metro Exit)</label>
-        <input type="text" id="inputMetro" placeholder="เช่น Line 2/10 - East Nanjing Rd. (Exit 7)">
+        <label>สถานีรถไฟใต้ดิน (Metro Exit)</label>
+        <input type="text" id="inputMetro" placeholder="เช่น Line 2 - East Nanjing Rd. (Exit 7)">
       </div>
+
       <div class="form-group">
         <label>ลิงก์ Google Maps (ถ้ามี)</label>
         <input type="url" id="inputMap" placeholder="https://maps.app.goo.gl/...">
       </div>
+
       <div class="form-group">
-        <label>โน้ตย่อ / เมนูต้องลอง</label>
-        <textarea id="inputNote" rows="2" placeholder="เช่น เปิดไฟ 19:00 น., ขนมเสี่ยวหลงเปาร้านดัง"></textarea>
+        <label>โน้ตย่อ / เมนูแนะนำ</label>
+        <textarea id="inputNote" rows="2" placeholder="เช่น เปิดไฟ 19:00, ขนมดัง"></textarea>
       </div>
+
       <div class="form-group">
         <label>ชื่อผู้เพิ่ม</label>
         <input type="text" id="inputAddedBy" placeholder="เช่น เบนซ์">
@@ -244,51 +337,93 @@
   <!-- Config Modal -->
   <div class="modal" id="configModal">
     <div class="modal-content">
-      <div class="modal-title">ตั้งค่า Google Sheet API</div>
+      <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px;">ตั้งค่า Google Sheet API</div>
       <div class="form-group">
-        <label>Google Apps Script Web App URL</label>
+        <label>Apps Script Web App URL</label>
         <input type="text" id="scriptUrlInput">
       </div>
-      <button class="btn-submit" onclick="saveConfig()">บันทึกการตั้งค่า</button>
+      <button class="btn-submit" onclick="saveConfig()">บันทึก</button>
       <button class="btn-submit" style="background:#E2E8F0; color:#333;" onclick="closeModal('configModal')">ปิด</button>
     </div>
   </div>
 
+  <!-- Leaflet JS for Map -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     let allPlaces = [];
-    let currentFilter = 'All';
+    let currentDayFilter = 'All';
+    let currentCatFilter = 'All';
+    let mapInstance = null;
+    let markersLayer = null;
 
-    // ใส่ Web App URL ของคุณไว้ตรงนี้เป็นค่าเริ่มต้น
+    // คำศัพท์จีนเอาตัวรอดพร้อมพินอิน
+    const survivalPhrases = [
+      { cn: "不要香菜", py: "Bù yào xiāngcài", th: "ไม่ใส่ผักชี 🌿" },
+      { cn: "买单 / 结账", py: "Mǎidān / Jiézhàng", th: "เช็กบิล / คิดเงิน 💵" },
+      { cn: "在哪里扫码？", py: "Zài nǎlǐ sǎomǎ?", th: "สแกนจ่ายเงินตรงไหน? 📱" },
+      { cn: "洗手间在哪里？", py: "Xǐshǒujiān zài nǎlǐ?", th: "ห้องน้ำอยู่ที่ไหน? 🚻" },
+      { cn: "不要辣 / 微辣", py: "Bù yào là / Wēi là", th: "ไม่เผ็ด / เผ็ดน้อย 🌶️" },
+      { cn: "可以打包吗？", py: "Kěyǐ dǎbāo ma?", th: "ห่อกลับบ้านได้ไหม? 🥡" },
+      { cn: "发票", py: "Fāpiào", th: "ขอใบเสร็จ 🧾" },
+      { cn: "请问地铁站在哪里？", py: "Qǐngwèn dìtiězhàn zài nǎlǐ?", th: "สถานีรถไฟใต้ดินอยู่ไหน? 🚇" },
+      { cn: "太贵了，可以便宜点吗？", py: "Tài guì le, kěyǐ piányí diǎn ma?", th: "แพงไป ลดราคาหน่อยได้ไหม? 🏷️" },
+      { cn: "请带我去这里", py: "Qǐng dài wǒ qù zhèlǐ", th: "ช่วยพาฉันไปที่นี่หน่อย (เปิดให้คนขับดู) 🚕" }
+    ];
+
     function getApiUrl() {
-      return localStorage.getItem('shanghai_script_url') || 'https://script.google.com/macros/library/d/1EdCEMluddpinKJakGFLk-6u_fg-LzSfo6waTAtYBHXHHzyQLTK6dCN_8/2';
+      return localStorage.getItem('shanghai_script_url') || 'https://script.google.com/macros/s/AKfycbw_fO_B74NclMzV_ax5Wp9MYQqobYs8DoSPYXuioo9aAl8KhFklyVK0LsIYZIgab9gE/exec';
     }
 
+    // View Navigation
+    function switchView(viewName, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('view-' + viewName).classList.add('active');
+
+      const fab = document.getElementById('fabAdd');
+      fab.style.display = (viewName === 'itinerary' || viewName === 'map') ? 'flex' : 'none';
+
+      if (viewName === 'map') {
+        initMap();
+      }
+    }
+
+    // 1. Places CRUD & Render
     async function loadPlaces() {
       const url = getApiUrl();
       const listEl = document.getElementById('placesList');
 
       if (!url || url.includes('ใส่_URL')) {
         listEl.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-sub);">
-          กรุณากดรูปเฟือง ⚙️ ด้านบน เพื่อใส่ <b>Google Apps Script URL</b> เพื่อเชื่อมต่อฐานข้อมูลครับ
+          กรุณากดรูปเฟือง ⚙️ ด้านบน เพื่อใส่ <b>Google Apps Script URL</b> ครับ
         </div>`;
         return;
       }
 
-      listEl.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 40px 0;">กำลังโหลดข้อมูล...</div>`;
+      listEl.innerHTML = `<div style="text-align:center; padding:40px 0; color:var(--text-sub);">กำลังโหลดข้อมูล...</div>`;
 
       try {
         const res = await fetch(url);
         allPlaces = await res.json();
         renderPlaces();
+        if (mapInstance) updateMapMarkers();
       } catch (err) {
-        listEl.innerHTML = `<div style="text-align: center; color: red; padding: 40px 20px;">โหลดข้อมูลไม่สำเร็จ: ${err.message}</div>`;
+        listEl.innerHTML = `<div style="text-align:center; color:red; padding:40px 20px;">โหลดไม่สำเร็จ: ${err.message}</div>`;
       }
     }
 
     function filterDay(day, btn) {
-      currentFilter = day;
-      document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
+      currentDayFilter = day;
+      document.querySelectorAll('#dayFilter .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderPlaces();
+    }
+
+    function filterCategory(cat, btn) {
+      currentCatFilter = cat;
+      document.querySelectorAll('#catFilter .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
       renderPlaces();
     }
 
@@ -297,60 +432,49 @@
       listEl.innerHTML = '';
 
       let filtered = allPlaces;
-      if (currentFilter !== 'All') {
-        filtered = allPlaces.filter(p => p.day === currentFilter);
-      }
+      if (currentDayFilter !== 'All') filtered = filtered.filter(p => p.day === currentDayFilter);
+      if (currentCatFilter !== 'All') filtered = filtered.filter(p => (p.category || '📸 Landmark') === currentCatFilter);
 
       if (filtered.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:40px 0;">ยังไม่มีสถานที่สำหรับช่วงนี้ กดปุ่มด้านล่างเพื่อเพิ่มได้เลย!</div>`;
+        listEl.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:40px 0;">ไม่พบสถานที่ในหมวดนี้ กด + เพื่อเพิ่มได้เลย</div>`;
         return;
       }
 
       const slots = ['ช่วงเช้า (Morning)', 'ช่วงบ่าย (Afternoon)', 'ช่วงค่ำ (Evening)'];
-      
       slots.forEach(slot => {
         const inSlot = filtered.filter(p => p.timeSlot === slot);
         if (inSlot.length > 0) {
-          const slotHeading = document.createElement('div');
-          slotHeading.className = 'section-slot';
-          slotHeading.innerText = `🕒 ${slot}`;
-          listEl.appendChild(slotHeading);
+          const heading = document.createElement('div');
+          heading.style = 'margin: 14px 0 6px; font-size: 0.88rem; font-weight: 600; color: var(--text-sub);';
+          heading.innerText = `🕒 ${slot}`;
+          listEl.appendChild(heading);
 
           inSlot.forEach(place => {
             const card = document.createElement('div');
             card.className = `place-card ${place.visited ? 'is-done' : ''}`;
-            
-            // ลิงก์แผนที่ Amap (ค้นหาด้วยชื่อจีน หรือชื่ออังกฤษ)
-            const searchQuery = encodeURIComponent((place.chineseName || place.placeName) + ' 上海');
-            const amapUrl = `https://uri.amap.com/search?keyword=${searchQuery}`;
+
             const gmapUrl = place.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.placeName + ' Shanghai')}`;
-
-            // ชื่อจีนพร้อมปุ่ม Copy
-            const chineseBlock = place.chineseName 
-              ? `<div class="chinese-tag" onclick="copyText('${place.chineseName}')" title="กดเพื่อคัดลอก">🇨🇳 ${place.chineseName} 📋</div>` 
-              : '';
-
-            // ข้อมูลสถานี Metro
-            const metroBlock = place.metro 
-              ? `<div class="metro-info">🚇 ${place.metro}</div>` 
-              : '';
+            const amapUrl = `https://uri.amap.com/search?keyword=${encodeURIComponent((place.chineseName || place.placeName) + ' 上海')}`;
 
             card.innerHTML = `
               <div class="place-header">
                 <div>
-                  <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">[${place.day}]</span>
+                  <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                    <span class="badge-tag">${place.category || '📸 Landmark'}</span>
+                    <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">[${place.day}]</span>
+                  </div>
                   <div class="place-name">${place.placeName}</div>
                 </div>
                 <span class="badge-user">${place.addedBy || 'เพื่อน'}</span>
               </div>
-              
-              ${chineseBlock}
-              ${metroBlock}
+
+              ${place.chineseName ? `<div class="chinese-tag" onclick="copyText('${place.chineseName}')">🇨🇳 ${place.chineseName} 📋</div>` : ''}
+              ${place.metro ? `<div class="metro-info">🚇 ${place.metro}</div>` : ''}
               ${place.note ? `<div class="place-note">${place.note}</div>` : ''}
 
               <div class="place-actions">
-                <a href="${gmapUrl}" target="_blank" class="btn-act btn-gmap">📍 Google Maps</a>
-                <a href="${amapUrl}" target="_blank" class="btn-act btn-amap">🗺️ Amap (高德)</a>
+                <a href="${gmapUrl}" target="_blank" class="btn-act btn-gmap">📍 G-Maps</a>
+                <a href="${amapUrl}" target="_blank" class="btn-act btn-amap">🗺️ Amap</a>
                 <button class="btn-act btn-edit" onclick="openEditModal(${place.rowIndex})">✏️</button>
                 <button class="btn-act btn-delete" onclick="deletePlace(${place.rowIndex}, '${place.placeName}')">🗑️</button>
                 <button class="btn-act btn-check" onclick="toggleVisited(${place.rowIndex}, ${!place.visited})">
@@ -364,14 +488,109 @@
       });
     }
 
-    function copyText(txt) {
-      navigator.clipboard.writeText(txt).then(() => {
-        alert(`คัดลอก "${txt}" สำเร็จ! นำไปวางใน Didi หรือแอปแผนที่จีนได้เลย`);
+    // 2. Interactive Map (Leaflet)
+    // พิกัด Landmark หลักในเซี่ยงไฮ้สำหรับ Mapping อัตโนมัติเบื้องต้น
+    const knownCoords = {
+      'The Bund': [31.2397, 121.4904],
+      '外滩': [31.2397, 121.4904],
+      'Yu Garden': [31.2272, 121.4921],
+      '豫园': [31.2272, 121.4921],
+      'Oriental Pearl': [31.2398, 121.4998],
+      '东方明珠': [31.2398, 121.4998],
+      'Nanjing Road': [31.2359, 121.4789],
+      '南京东路': [31.2359, 121.4789],
+      'Disneyland': [31.1440, 121.6570],
+      '迪士尼': [31.1440, 121.6570],
+      'Xintiandi': [31.2186, 121.4754],
+      '新天地': [31.2186, 121.4754],
+      'Starbucks Reserve': [31.2312, 121.4604],
+      '星巴克': [31.2312, 121.4604]
+    };
+
+    function initMap() {
+      if (!mapInstance) {
+        // เซ็ตจุดกึ่งกลางที่ Shanghai People's Square
+        mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap'
+        }).addTo(mapInstance);
+        markersLayer = L.layerGroup().addTo(mapInstance);
+      }
+      setTimeout(() => {
+        mapInstance.invalidateSize();
+        updateMapMarkers();
+      }, 200);
+    }
+
+    function updateMapMarkers() {
+      if (!markersLayer) return;
+      markersLayer.clearLayers();
+
+      allPlaces.forEach((p, idx) => {
+        // พยายามหาพิกัดจากฐานข้อมูล Landmark หรือกระจายตำแหน่งรอบจุดศูนย์กลาง
+        let coord = knownCoords[p.placeName] || knownCoords[p.chineseName];
+        if (!coord) {
+          // สุ่มกระจายแบบมีระบบในตัวเมืองเซี่ยงไฮ้สำหรับที่ไม่มีในพิกัดตั้งต้น
+          coord = [31.2304 + (Math.sin(idx) * 0.02), 121.4737 + (Math.cos(idx) * 0.02)];
+        }
+
+        const marker = L.marker(coord).addTo(markersLayer);
+        const amapUrl = `https://uri.amap.com/search?keyword=${encodeURIComponent((p.chineseName || p.placeName) + ' 上海')}`;
+
+        marker.bindPopup(`
+          <div style="font-family:'Prompt',sans-serif; min-width:140px;">
+            <b>${p.placeName}</b><br>
+            <span style="color:#991B1B;">${p.chineseName || ''}</span><br>
+            <small style="color:#0284C7;">🚇 ${p.metro || '-'}</small><br>
+            <a href="${amapUrl}" target="_blank" style="display:inline-block; margin-top:4px; color:#0284C7; font-weight:600;">เปิดใน Amap ➔</a>
+          </div>
+        `);
       });
     }
 
+    // 3. Currency Converter
+    function convertCNY() {
+      const cny = parseFloat(document.getElementById('cnyInput').value);
+      const rate = parseFloat(document.getElementById('rateInput').value) || 5.0;
+      if (!isNaN(cny)) {
+        document.getElementById('thbInput').value = (cny * rate).toFixed(2);
+      } else {
+        document.getElementById('thbInput').value = '';
+      }
+    }
+
+    function convertTHB() {
+      const thb = parseFloat(document.getElementById('thbInput').value);
+      const rate = parseFloat(document.getElementById('rateInput').value) || 5.0;
+      if (!isNaN(thb)) {
+        document.getElementById('cnyInput').value = (thb / rate).toFixed(2);
+      } else {
+        document.getElementById('cnyInput').value = '';
+      }
+    }
+
+    // 4. Survival Phrases Render
+    function renderPhrases() {
+      const list = document.getElementById('phrasesList');
+      list.innerHTML = '';
+      survivalPhrases.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'phrase-item';
+        div.innerHTML = `
+          <div>
+            <div class="phrase-cn">${item.cn}</div>
+            <div class="phrase-py">${item.py}</div>
+            <div class="phrase-th">${item.th}</div>
+          </div>
+          <button class="btn-act" style="background:#FEF2F2; color:#991B1B; font-size:0.85rem;" onclick="copyText('${item.cn}')">📋 ก๊อปปี้</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    // Modal & CRUD Operations
     function openAddModal() {
-      document.getElementById('modalHeading').innerText = 'เพิ่มสถานที่เที่ยวเซี่ยงไฮ้';
+      document.getElementById('modalHeading').innerText = 'เพิ่มสถานที่เที่ยว';
       document.getElementById('editRowIndex').value = '';
       document.getElementById('inputName').value = '';
       document.getElementById('inputChinese').value = '';
@@ -382,20 +601,19 @@
     }
 
     function openEditModal(rowIndex) {
-      const place = allPlaces.find(p => p.rowIndex === rowIndex);
-      if (!place) return;
-
-      document.getElementById('modalHeading').innerText = 'แก้ไขข้อมูลสถานที่';
-      document.getElementById('editRowIndex').value = place.rowIndex;
-      document.getElementById('inputDay').value = place.day;
-      document.getElementById('inputSlot').value = place.timeSlot;
-      document.getElementById('inputName').value = place.placeName;
-      document.getElementById('inputChinese').value = place.chineseName || '';
-      document.getElementById('inputMetro').value = place.metro || '';
-      document.getElementById('inputMap').value = place.mapUrl || '';
-      document.getElementById('inputNote').value = place.note || '';
-      document.getElementById('inputAddedBy').value = place.addedBy || '';
-
+      const p = allPlaces.find(x => x.rowIndex === rowIndex);
+      if (!p) return;
+      document.getElementById('modalHeading').innerText = 'แก้ไขสถานที่';
+      document.getElementById('editRowIndex').value = p.rowIndex;
+      document.getElementById('inputCat').value = p.category || '📸 Landmark';
+      document.getElementById('inputDay').value = p.day;
+      document.getElementById('inputSlot').value = p.timeSlot;
+      document.getElementById('inputName').value = p.placeName;
+      document.getElementById('inputChinese').value = p.chineseName || '';
+      document.getElementById('inputMetro').value = p.metro || '';
+      document.getElementById('inputMap').value = p.mapUrl || '';
+      document.getElementById('inputNote').value = p.note || '';
+      document.getElementById('inputAddedBy').value = p.addedBy || '';
       document.getElementById('entryModal').style.display = 'flex';
     }
 
@@ -404,7 +622,7 @@
       if (!url) return alert('กรุณาตั้งค่า Script URL ก่อนครับ');
 
       const name = document.getElementById('inputName').value.trim();
-      if (!name) return alert('กรุณากรอกชื่อสถานที่');
+      if (!name) return alert('กรุณาระบุชื่อสถานที่');
 
       const editRow = document.getElementById('editRowIndex').value;
       const isEdit = editRow !== '';
@@ -412,6 +630,7 @@
       const payload = {
         action: isEdit ? 'edit' : 'create',
         rowIndex: editRow,
+        category: document.getElementById('inputCat').value,
         day: document.getElementById('inputDay').value,
         timeSlot: document.getElementById('inputSlot').value,
         placeName: name,
@@ -434,11 +653,10 @@
           body: JSON.stringify(payload)
         });
 
-        alert(isEdit ? 'แก้ไขข้อมูลเรียบร้อยแล้ว!' : 'เพิ่มสถานที่สำเร็จแล้ว!');
         closeModal('entryModal');
         setTimeout(loadPlaces, 1200);
-      } catch (err) {
-        alert('เกิดข้อผิดพลาด: ' + err.message);
+      } catch (e) {
+        alert('เกิดข้อผิดพลาด: ' + e.message);
       } finally {
         btn.disabled = false;
         btn.innerText = 'บันทึกข้อมูล';
@@ -446,49 +664,33 @@
     }
 
     async function toggleVisited(rowIndex, newStatus) {
-      const url = getApiUrl();
-      try {
-        // อัปเดตที่หน้าจอทันทีเพื่อความเร็ว
-        const item = allPlaces.find(p => p.rowIndex === rowIndex);
-        if (item) item.visited = newStatus;
-        renderPlaces();
+      const p = allPlaces.find(x => x.rowIndex === rowIndex);
+      if (p) p.visited = newStatus;
+      renderPlaces();
 
-        // ส่งอัปเดตไป Google Sheet
-        await fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'toggleVisited',
-            rowIndex: rowIndex,
-            visited: newStatus
-          })
-        });
-      } catch (err) {
-        console.error(err);
-      }
+      await fetch(getApiUrl(), {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggleVisited', rowIndex: rowIndex, visited: newStatus })
+      });
     }
 
-    async function deletePlace(rowIndex, placeName) {
-      if (!confirm(`ต้องการลบ "${placeName}" ออกใช่หรือไม่?`)) return;
-      const url = getApiUrl();
+    async function deletePlace(rowIndex, name) {
+      if (!confirm(`ต้องการลบ "${name}" ใช่หรือไม่?`)) return;
+      await fetch(getApiUrl(), {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', rowIndex: rowIndex })
+      });
+      setTimeout(loadPlaces, 1200);
+    }
 
-      try {
-        await fetch(url, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'delete',
-            rowIndex: rowIndex
-          })
-        });
-
-        alert('ลบสถานที่เรียบร้อยแล้ว');
-        setTimeout(loadPlaces, 1200);
-      } catch (err) {
-        alert('เกิดข้อผิดพลาดในการลบ: ' + err.message);
-      }
+    function copyText(txt) {
+      navigator.clipboard.writeText(txt).then(() => {
+        alert(`คัดลอก "${txt}" แล้ว! นำไปวางใน Didi / Amap ได้ทันที`);
+      });
     }
 
     function openConfigModal() {
@@ -497,16 +699,16 @@
     }
 
     function saveConfig() {
-      const val = document.getElementById('scriptUrlInput').value.trim();
-      localStorage.setItem('shanghai_script_url', val);
+      localStorage.setItem('shanghai_script_url', document.getElementById('scriptUrlInput').value.trim());
       closeModal('configModal');
       loadPlaces();
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // Start
+    // Init
     loadPlaces();
+    renderPhrases();
   </script>
 </body>
 </html>
