@@ -39,7 +39,7 @@
     h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
     .btn-config { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
 
-    /* Navigation Bar (Bottom or Sub-header) */
+    /* Navigation Bar */
     .nav-tabs {
       display: flex;
       background: #FFFFFF;
@@ -169,6 +169,9 @@
       width: 100%; padding: 13px; background: var(--primary); color: #FFFFFF; border: none;
       border-radius: 10px; font-size: 0.95rem; font-weight: 600; margin-top: 8px; cursor: pointer;
     }
+    .autofill-hint {
+      font-size: 0.72rem; color: var(--primary); margin-top: 2px; display: block;
+    }
   </style>
 </head>
 <body>
@@ -255,7 +258,7 @@
 
   <!-- VIEW 4: SURVIVAL CHINESE -->
   <div id="view-phrases" class="view-content">
-    <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">แตะที่การ์ดเพื่อคัดลอก หรือกด 🔍 เพื่อขยายตัวอักษรให้คนจีนอ่าน</div>
+    <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">แตะที่การ์ดเพื่อคัดลอก หรือนำไปยื่นให้คนจีนดูได้ทันที</div>
     <div id="phrasesList"></div>
   </div>
 
@@ -267,6 +270,23 @@
     <div class="modal-content">
       <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px;" id="modalHeading">เพิ่มสถานที่เที่ยว</div>
       <input type="hidden" id="editRowIndex" value="">
+
+      <div class="form-group">
+        <label>ชื่อสถานที่ (ไทย / อังกฤษ / จีน)</label>
+        <input type="text" id="inputName" list="landmarkPresets" placeholder="เช่น The Bund, Yu Garden, หอไข่มุก" oninput="handlePlaceNameInput(this.value)">
+        <datalist id="landmarkPresets"></datalist>
+        <span class="autofill-hint" id="autofillHint">⚡ พิมพ์ชื่อแลนด์มาร์ก ระบบจะดึงชื่อจีนและสถานี Metro ให้อัตโนมัติ</span>
+      </div>
+
+      <div class="form-group">
+        <label>ชื่อภาษาจีน (สำหรับแผนที่จีน / Didi)</label>
+        <input type="text" id="inputChinese" placeholder="เช่น 外滩, 豫园">
+      </div>
+
+      <div class="form-group">
+        <label>สถานีรถไฟใต้ดิน (Metro Exit)</label>
+        <input type="text" id="inputMetro" placeholder="เช่น Line 2/10 - East Nanjing Rd. (Exit 7)">
+      </div>
 
       <div class="form-group">
         <label>หมวดหมู่</label>
@@ -297,21 +317,6 @@
           <option value="ช่วงบ่าย (Afternoon)">ช่วงบ่าย (Afternoon)</option>
           <option value="ช่วงค่ำ (Evening)">ช่วงค่ำ (Evening)</option>
         </select>
-      </div>
-
-      <div class="form-group">
-        <label>ชื่อสถานที่ (ไทย / อังกฤษ)</label>
-        <input type="text" id="inputName" placeholder="เช่น The Bund, สวนอวี้หยวน">
-      </div>
-
-      <div class="form-group">
-        <label>ชื่อภาษาจีน (สำหรับแผนที่จีน / Didi)</label>
-        <input type="text" id="inputChinese" placeholder="เช่น 外滩, 豫园">
-      </div>
-
-      <div class="form-group">
-        <label>สถานีรถไฟใต้ดิน (Metro Exit)</label>
-        <input type="text" id="inputMetro" placeholder="เช่น Line 2 - East Nanjing Rd. (Exit 7)">
       </div>
 
       <div class="form-group">
@@ -355,6 +360,172 @@
     let currentCatFilter = 'All';
     let mapInstance = null;
     let markersLayer = null;
+
+    // ฐานข้อมูล Landmark เซี่ยงไฮ้ยอดฮิตสำหรับ Auto-Fill และ Suggest
+    const landmarkDatabase = [
+      {
+        name: "The Bund",
+        aliases: ["the bund", "เดอะบันด์", "หาดไว่ทาน", "ไว่ทาน", "waitan"],
+        cn: "外滩",
+        metro: "Line 2/10 - East Nanjing Rd. (Exit 7)",
+        cat: "📸 Landmark",
+        coords: [31.2397, 121.4904]
+      },
+      {
+        name: "Yu Garden",
+        aliases: ["yu garden", "yuyuan", "สวนอวี้หยวน", "อวี้หยวน", "ตลาดร้อยปี"],
+        cn: "豫园",
+        metro: "Line 10/14 - Yuyuan Station (Exit 1)",
+        cat: "📸 Landmark",
+        coords: [31.2272, 121.4921]
+      },
+      {
+        name: "Oriental Pearl Tower",
+        aliases: ["oriental pearl", "หอไข่มุก", "หอไข่มุกตะวันออก"],
+        cn: "东方明珠广播电视塔",
+        metro: "Line 2 - Lujiazui (Exit 1)",
+        cat: "📸 Landmark",
+        coords: [31.2398, 121.4998]
+      },
+      {
+        name: "Shanghai Tower",
+        aliases: ["shanghai tower", "ตึกเซี่ยงไฮ้ทาวเวอร์", "เซี่ยงไฮ้ทาวเวอร์"],
+        cn: "上海中心大厦",
+        metro: "Line 2/14 - Lujiazui (Exit 9)",
+        cat: "📸 Landmark",
+        coords: [31.2355, 121.5015]
+      },
+      {
+        name: "Nanjing Road Pedestrian Street",
+        aliases: ["nanjing road", "ถนนคนเดินนานจิง", "นานจิงตงลู่", "ถนนนานจิง"],
+        cn: "南京东路步行街",
+        metro: "Line 2/10 - East Nanjing Rd. (Exit 1/4)",
+        cat: "🛍️ ช้อปปิ้ง",
+        coords: [31.2359, 121.4789]
+      },
+      {
+        name: "Shanghai Disneyland",
+        aliases: ["disneyland", "disney", "ดิสนีย์แลนด์", "เซี่ยงไฮ้ดิสนีย์แลนด์"],
+        cn: "上海迪士尼度假区",
+        metro: "Line 11 - Disney Resort (Exit 1)",
+        cat: "🎢 เที่ยว/กิจกรรม",
+        coords: [31.1440, 121.6570]
+      },
+      {
+        name: "Starbucks Reserve Roastery",
+        aliases: ["starbucks reserve", "สตาร์บัคส์รีเสิร์ฟ", "สตาร์บัคส์"],
+        cn: "星巴克臻选上海烘焙工坊",
+        metro: "Line 2/12/13 - West Nanjing Rd. (Exit 11)",
+        cat: "☕ คาเฟ่",
+        coords: [31.2312, 121.4604]
+      },
+      {
+        name: "Xintiandi",
+        aliases: ["xintiandi", "ซินเทียนตี้", "ย่านซินเทียนตี้"],
+        cn: "新天地",
+        metro: "Line 10/13 - Xintiandi (Exit 6)",
+        cat: "🛍️ ช้อปปิ้ง",
+        coords: [31.2186, 121.4754]
+      },
+      {
+        name: "Tianzifang",
+        aliases: ["tianzifang", "เถียนจื่อฟาง"],
+        cn: "田子坊",
+        metro: "Line 9 - Dapuqiao (Exit 1)",
+        cat: "🛍️ ช้อปปิ้ง",
+        coords: [31.2091, 121.4688]
+      },
+      {
+        name: "Jing'an Temple",
+        aliases: ["jingan temple", "jing'an", "วัดจิ้งอัน", "จิ้งอัน"],
+        cn: "静安寺",
+        metro: "Line 2/7/14 - Jing'an Temple (Exit 1)",
+        cat: "📸 Landmark",
+        coords: [31.2235, 121.4465]
+      },
+      {
+        name: "Jade Buddha Temple",
+        aliases: ["jade buddha", "วัดพระหยก"],
+        cn: "玉佛禅寺",
+        metro: "Line 13 - Jiangning Rd. (Exit 3)",
+        cat: "📸 Landmark",
+        coords: [31.2427, 121.4429]
+      },
+      {
+        name: "Wukang Road",
+        aliases: ["wukang road", "wukang building", "อาคารหวู่คัง", "ถนนหวู่คัง"],
+        cn: "武康大楼 / 武康路",
+        metro: "Line 10/11 - Jiaotong University (Exit 7)",
+        cat: "📸 Landmark",
+        coords: [31.2052, 121.4398]
+      },
+      {
+        name: "People's Square",
+        aliases: ["peoples square", "people's square", "จัตุรัสประชาชน"],
+        cn: "人民广场",
+        metro: "Line 1/2/8 - People's Square (Exit 19)",
+        cat: "📸 Landmark",
+        coords: [31.2304, 121.4737]
+      },
+      {
+        name: "Zhujiajiao Water Town",
+        aliases: ["zhujiajiao", "จูเจียเจี่ยว", "เมืองโบราณจูเจียเจี่ยว"],
+        cn: "朱家角古镇",
+        metro: "Line 17 - Zhujiajiao (Exit 1)",
+        cat: "📸 Landmark",
+        coords: [31.1114, 121.0531]
+      },
+      {
+        name: "North Bund Green Land",
+        aliases: ["north bund", "ไว่ทานเหนือ", "นอร์ทบันด์"],
+        cn: "北外滩滨江绿地",
+        metro: "Line 12 - International Cruise Terminal (Exit 3)",
+        cat: "📸 Landmark",
+        coords: [31.2488, 121.4988]
+      },
+      {
+        name: "Pop Mart Global Flagship",
+        aliases: ["pop mart", "ป๊อปมาร์ท", "popmart"],
+        cn: "泡泡玛特全球旗舰店 (南京东路)",
+        metro: "Line 2/10 - East Nanjing Rd. (Exit 2)",
+        cat: "🛍️ ช้อปปิ้ง",
+        coords: [31.2372, 121.4820]
+      }
+    ];
+
+    // โหลด Datalist presets ใส่ในช่อง Input
+    function populatePresets() {
+      const datalist = document.getElementById('landmarkPresets');
+      datalist.innerHTML = '';
+      landmarkDatabase.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.name;
+        option.innerText = `${item.cn} | ${item.metro}`;
+        datalist.appendChild(option);
+      });
+    }
+
+    // ฟังก์ชัน Auto-Fill เมื่อผู้ใช้พิมพ์หรือเลือกชื่อสถานที่
+    function handlePlaceNameInput(val) {
+      const query = val.trim().toLowerCase();
+      if (!query) {
+        document.getElementById('autofillHint').innerText = '⚡ พิมพ์ชื่อแลนด์มาร์ก ระบบจะดึงชื่อจีนและสถานี Metro ให้อัตโนมัติ';
+        return;
+      }
+
+      const match = landmarkDatabase.find(item => 
+        item.name.toLowerCase() === query ||
+        item.cn.toLowerCase() === query ||
+        item.aliases.some(alias => query.includes(alias) || alias.includes(query))
+      );
+
+      if (match) {
+        document.getElementById('inputChinese').value = match.cn;
+        document.getElementById('inputMetro').value = match.metro;
+        document.getElementById('inputCat').value = match.cat;
+        document.getElementById('autofillHint').innerText = `✨ พบข้อมูลอัตโนมัติ: ${match.cn} (Metro: ${match.metro})`;
+      }
+    }
 
     // คำศัพท์จีนเอาตัวรอดพร้อมพินอิน
     const survivalPhrases = [
@@ -489,27 +660,8 @@
     }
 
     // 2. Interactive Map (Leaflet)
-    // พิกัด Landmark หลักในเซี่ยงไฮ้สำหรับ Mapping อัตโนมัติเบื้องต้น
-    const knownCoords = {
-      'The Bund': [31.2397, 121.4904],
-      '外滩': [31.2397, 121.4904],
-      'Yu Garden': [31.2272, 121.4921],
-      '豫园': [31.2272, 121.4921],
-      'Oriental Pearl': [31.2398, 121.4998],
-      '东方明珠': [31.2398, 121.4998],
-      'Nanjing Road': [31.2359, 121.4789],
-      '南京东路': [31.2359, 121.4789],
-      'Disneyland': [31.1440, 121.6570],
-      '迪士尼': [31.1440, 121.6570],
-      'Xintiandi': [31.2186, 121.4754],
-      '新天地': [31.2186, 121.4754],
-      'Starbucks Reserve': [31.2312, 121.4604],
-      '星巴克': [31.2312, 121.4604]
-    };
-
     function initMap() {
       if (!mapInstance) {
-        // เซ็ตจุดกึ่งกลางที่ Shanghai People's Square
         mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap'
@@ -527,12 +679,11 @@
       markersLayer.clearLayers();
 
       allPlaces.forEach((p, idx) => {
-        // พยายามหาพิกัดจากฐานข้อมูล Landmark หรือกระจายตำแหน่งรอบจุดศูนย์กลาง
-        let coord = knownCoords[p.placeName] || knownCoords[p.chineseName];
-        if (!coord) {
-          // สุ่มกระจายแบบมีระบบในตัวเมืองเซี่ยงไฮ้สำหรับที่ไม่มีในพิกัดตั้งต้น
-          coord = [31.2304 + (Math.sin(idx) * 0.02), 121.4737 + (Math.cos(idx) * 0.02)];
-        }
+        const found = landmarkDatabase.find(lm => 
+          lm.name.toLowerCase() === p.placeName.toLowerCase() || 
+          lm.cn === p.chineseName
+        );
+        let coord = found ? found.coords : [31.2304 + (Math.sin(idx) * 0.02), 121.4737 + (Math.cos(idx) * 0.02)];
 
         const marker = L.marker(coord).addTo(markersLayer);
         const amapUrl = `https://uri.amap.com/search?keyword=${encodeURIComponent((p.chineseName || p.placeName) + ' 上海')}`;
@@ -597,6 +748,7 @@
       document.getElementById('inputMetro').value = '';
       document.getElementById('inputMap').value = '';
       document.getElementById('inputNote').value = '';
+      document.getElementById('autofillHint').innerText = '⚡ พิมพ์ชื่อแลนด์มาร์ก ระบบจะดึงชื่อจีนและสถานี Metro ให้อัตโนมัติ';
       document.getElementById('entryModal').style.display = 'flex';
     }
 
@@ -707,6 +859,7 @@
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     // Init
+    populatePresets();
     loadPlaces();
     renderPhrases();
   </script>
