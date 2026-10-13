@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Shanghai Trip Planner 🇨🇳</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-main: #0F172A;
+      --text-sub: #64748B;
+      --primary: #E11D48; /* Red/Crimson theme for Shanghai */
+      --primary-light: #FFE4E6;
+      --border: #E2E8F0;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text-main); padding-bottom: 90px; }
+
+    header {
+      background: #FFFFFF;
+      padding: 20px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+    .btn-config { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
+
+    /* Day Filter Tabs */
+    .day-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px 20px;
+      scrollbar-width: none;
+    }
+    .day-tabs::-webkit-scrollbar { display: none; }
+    .day-btn {
+      flex-shrink: 0;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .day-btn.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(225, 29, 72, 0.25);
+    }
+
+    /* Content Area */
+    .container { padding: 0 20px; }
+    .section-slot { margin-top: 16px; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-sub); display: flex; align-items: center; gap: 6px; }
+    
+    .place-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .place-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+    .place-name { font-size: 1.05rem; font-weight: 600; color: var(--text-main); }
+    .badge-user { font-size: 0.7rem; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 12px; font-weight: 500; white-space: nowrap; }
+    .place-note { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px; line-height: 1.4; }
+
+    .place-actions { display: flex; gap: 8px; }
+    .btn-map {
+      flex: 1;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #F1F5F9;
+      color: #1E293B;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .btn-map:hover { background: #E2E8F0; }
+
+    /* Floating Add Button */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 20;
+    }
+
+    /* Modal Form */
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: flex-end;
+      z-index: 100;
+    }
+    .modal-content {
+      background: #FFFFFF;
+      width: 100%;
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 16px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <div>
+        <h1>Shanghai 2026 🇨🇳</h1>
+        <div style="font-size: 0.75rem; color: var(--text-sub);">Shared Trip Itinerary</div>
+      </div>
+      <button class="btn-config" onclick="openConfigModal()">⚙️</button>
+    </div>
+  </header>
+
+  <!-- Filter Days -->
+  <div class="day-tabs" id="dayTabs">
+    <button class="day-btn active" onclick="filterDay('All', this)">ทั้งหมด</button>
+    <button class="day-btn" onclick="filterDay('Day 1', this)">Day 1</button>
+    <button class="day-btn" onclick="filterDay('Day 2', this)">Day 2</button>
+    <button class="day-btn" onclick="filterDay('Day 3', this)">Day 3</button>
+    <button class="day-btn" onclick="filterDay('Day 4', this)">Day 4</button>
+    <button class="day-btn" onclick="filterDay('Day 5', this)">Day 5</button>
+  </div>
+
+  <div class="container" id="placesList">
+    <div style="text-align: center; color: var(--text-sub); padding: 40px 0;">กำลังโหลดแผนการเดินทาง...</div>
+  </div>
+
+  <!-- Floating Add Place Button -->
+  <button class="fab" onclick="openAddModal()">+ เพิ่มสถานที่</button>
+
+  <!-- Modal: Add Place -->
+  <div class="modal" id="addModal">
+    <div class="modal-content">
+      <div class="modal-title">เพิ่มสถานที่เที่ยวเซี่ยงไฮ้</div>
+      <div class="form-group">
+        <label>วันที่</label>
+        <select id="inputDay">
+          <option value="Day 1">Day 1</option>
+          <option value="Day 2">Day 2</option>
+          <option value="Day 3">Day 3</option>
+          <option value="Day 4">Day 4</option>
+          <option value="Day 5">Day 5</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>ช่วงเวลา</label>
+        <select id="inputSlot">
+          <option value="ช่วงเช้า (Morning)">ช่วงเช้า (Morning)</option>
+          <option value="ช่วงบ่าย (Afternoon)">ช่วงบ่าย (Afternoon)</option>
+          <option value="ช่วงค่ำ (Evening)">ช่วงค่ำ (Evening)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>ชื่อสถานที่</label>
+        <input type="text" id="inputName" placeholder="เช่น The Bund, Yu Garden, Starbucks Reserve">
+      </div>
+      <div class="form-group">
+        <label>ลิงก์ Google Maps / Amap (ถ้ามี)</label>
+        <input type="url" id="inputMap" placeholder="https://maps.app.goo.gl/...">
+      </div>
+      <div class="form-group">
+        <label>โน้ตย่อ / ไฮไลต์ / เมนูต้องลอง</label>
+        <textarea id="inputNote" rows="2" placeholder="เช่น เปิดไฟ 19:00 น., ซื้อตั๋วล่วงหน้า"></textarea>
+      </div>
+      <div class="form-group">
+        <label>ชื่อของคุณ (ผู้เพิ่ม)</label>
+        <input type="text" id="inputAddedBy" placeholder="เช่น เบนซ์">
+      </div>
+      <button class="btn-submit" id="btnSubmit" onclick="submitPlace()">บันทึกสถานที่</button>
+      <button class="btn-submit" style="background:#E2E8F0; color:#333; margin-top:8px;" onclick="closeModal('addModal')">ยกเลิก</button>
+    </div>
+  </div>
+
+  <!-- Modal: Config (Apps Script URL) -->
+  <div class="modal" id="configModal">
+    <div class="modal-content">
+      <div class="modal-title">ตั้งค่า Google Sheet API</div>
+      <div class="form-group">
+        <label>Google Apps Script Web App URL</label>
+        <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <button class="btn-submit" onclick="saveConfig()">บันทึกการตั้งค่า</button>
+      <button class="btn-submit" style="background:#E2E8F0; color:#333; margin-top:8px;" onclick="closeModal('configModal')">ปิด</button>
+    </div>
+  </div>
+
+  <script>
+    let allPlaces = [];
+    let currentFilter = 'All';
+
+    function getApiUrl() {
+      return localStorage.getItem('shanghai_script_url') || '';
+    }
+
+    async function loadPlaces() {
+      const url = getApiUrl();
+      const listEl = document.getElementById('placesList');
+
+      if (!url) {
+        listEl.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 40px 20px;">
+          กรุณากดไอคอนรูปเฟือง ⚙️ ด้านบน เพื่อใส่ <b>Google Apps Script URL</b> เพื่อเชื่อมต่อฐานข้อมูลครับ
+        </div>`;
+        return;
+      }
+
+      listEl.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 40px 0;">กำลังโหลดข้อมูล...</div>`;
+
+      try {
+        const res = await fetch(url);
+        allPlaces = await res.json();
+        renderPlaces();
+      } catch (err) {
+        listEl.innerHTML = `<div style="text-align: center; color: red; padding: 40px 20px;">โหลดข้อมูลไม่สำเร็จ: ${err.message}</div>`;
+      }
+    }
+
+    function filterDay(day, btn) {
+      currentFilter = day;
+      document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderPlaces();
+    }
+
+    function renderPlaces() {
+      const listEl = document.getElementById('placesList');
+      listEl.innerHTML = '';
+
+      let filtered = allPlaces;
+      if (currentFilter !== 'All') {
+        filtered = allPlaces.filter(p => p.day === currentFilter);
+      }
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 40px 0;">ยังไม่มีสถานที่สำหรับช่วงนี้ กดปุ่มด้านล่างเพื่อเพิ่มได้เลย!</div>`;
+        return;
+      }
+
+      // Group ตาม TimeSlot
+      const slots = ['ช่วงเช้า (Morning)', 'ช่วงบ่าย (Afternoon)', 'ช่วงค่ำ (Evening)'];
+      
+      slots.forEach(slot => {
+        const inSlot = filtered.filter(p => p.timeSlot === slot);
+        if (inSlot.length > 0) {
+          const slotHeading = document.createElement('div');
+          slotHeading.className = 'section-slot';
+          slotHeading.innerText = `🕒 ${slot}`;
+          listEl.appendChild(slotHeading);
+
+          inSlot.forEach(place => {
+            const card = document.createElement('div');
+            card.className = 'place-card';
+            
+            const mapLink = place.mapUrl 
+              ? `<a href="${place.mapUrl}" target="_blank" class="btn-map">📍 ดูพิกัดแผนที่</a>` 
+              : `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.placeName + ' Shanghai')}" target="_blank" class="btn-map">🔍 ค้นหาใน Google Maps</a>`;
+
+            card.innerHTML = `
+              <div class="place-header">
+                <div>
+                  <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">[${place.day}]</span>
+                  <div class="place-name">${place.placeName}</div>
+                </div>
+                <span class="badge-user">${place.addedBy || 'เพื่อน'}</span>
+              </div>
+              ${place.note ? `<div class="place-note">${place.note}</div>` : ''}
+              <div class="place-actions">
+                ${mapLink}
+              </div>
+            `;
+            listEl.appendChild(card);
+          });
+        }
+      });
+    }
+
+    async function submitPlace() {
+      const url = getApiUrl();
+      if (!url) return alert('กรุณาตั้งค่า Script URL ที่ไอคอนเฟือง ⚙️ ก่อนครับ');
+
+      const name = document.getElementById('inputName').value.trim();
+      if (!name) return alert('กรุณากรอกชื่อสถานที่');
+
+      const payload = {
+        day: document.getElementById('inputDay').value,
+        timeSlot: document.getElementById('inputSlot').value,
+        placeName: name,
+        mapUrl: document.getElementById('inputMap').value.trim(),
+        note: document.getElementById('inputNote').value.trim(),
+        addedBy: document.getElementById('inputAddedBy').value.trim() || 'เพื่อนในกลุ่ม'
+      };
+
+      const btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.innerText = 'กำลังบันทึกลง Google Sheet...';
+
+      try {
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        alert('เพิ่มสถานที่สำเร็จแล้ว!');
+        closeModal('addModal');
+        // Reset form
+        document.getElementById('inputName').value = '';
+        document.getElementById('inputMap').value = '';
+        document.getElementById('inputNote').value = '';
+
+        // รอ 1 วินาทีแล้วโหลดรายการใหม่
+        setTimeout(loadPlaces, 1000);
+      } catch (err) {
+        alert('เกิดข้อผิดพลาด: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'บันทึกสถานที่';
+      }
+    }
+
+    function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function openConfigModal() {
+      document.getElementById('scriptUrlInput').value = getApiUrl();
+      document.getElementById('configModal').style.display = 'flex';
+    }
+    function saveConfig() {
+      const val = document.getElementById('scriptUrlInput').value.trim();
+      localStorage.setItem('shanghai_script_url', val);
+      closeModal('configModal');
+      loadPlaces();
+    }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // Start
+    loadPlaces();
+  </script>
+</body>
+</html>
