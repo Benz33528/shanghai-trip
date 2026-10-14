@@ -11,13 +11,13 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
-      --bg: #090A0F;              /* ดำมินิมอลเหลือบเทาเข้ม */
-      --card-bg: #13151D;         /* สีพื้นหลังการ์ด */
-      --text-main: #F1F5F9;       /* สีตัวหนังสือหลัก ขาวนวล */
-      --text-sub: #94A3B8;        /* สีตัวหนังสือรอง เทาอ่อน */
-      --primary: #38BDF8;         /* ฟ้า Sky Blue คลีนๆ */
+      --bg: #090A0F;
+      --card-bg: #13151D;
+      --text-main: #F1F5F9;
+      --text-sub: #94A3B8;
+      --primary: #38BDF8;
       --primary-light: rgba(56, 189, 248, 0.12);
-      --border: #222634;          /* เส้นขอบบางๆ มินิมอล */
+      --border: #222634;
       --radius: 14px;
       --danger: #F87171;
       --amap-blue: #38BDF8;
@@ -143,8 +143,21 @@
     .btn-check { background: rgba(16, 185, 129, 0.15); color: #34D399; margin-left: auto; font-weight: 600; }
     .place-card.is-done .btn-check { background: #1E2230; color: #64748B; }
 
-    /* Map View */
-    #mapContainer { height: calc(100vh - 180px); width: 100%; border-radius: 14px; border: 1px solid var(--border); }
+    /* Map View Elements */
+    #mapContainer { height: calc(100vh - 235px); width: 100%; border-radius: 14px; border: 1px solid var(--border); }
+    .custom-map-pin {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #090A0F;
+      font-weight: 700;
+      font-size: 0.75rem;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
 
     /* Converter & Phrases Styles */
     .calc-card {
@@ -208,7 +221,7 @@
     </div>
   </header>
 
-  <!-- Top Navigation Tabs -->
+  <!-- Navigation Bar -->
   <div class="nav-tabs">
     <button class="nav-btn active" onclick="switchView('itinerary', this)"><span>📋</span>แพลนเที่ยว</button>
     <button class="nav-btn" onclick="switchView('map', this)"><span>🗺️</span>แผนที่รวม</button>
@@ -221,6 +234,7 @@
     <!-- Day filter -->
     <div class="filter-scroll" id="dayFilter">
       <button class="pill-btn active" onclick="filterDay('All', this)">ทั้งหมด</button>
+      <button class="pill-btn" onclick="filterDay('Wishlist', this)">📌 Wishlist</button>
       <button class="pill-btn" onclick="filterDay('Day 1', this)">Day 1</button>
       <button class="pill-btn" onclick="filterDay('Day 2', this)">Day 2</button>
       <button class="pill-btn" onclick="filterDay('Day 3', this)">Day 3</button>
@@ -243,8 +257,18 @@
     </div>
   </div>
 
-  <!-- VIEW 2: INTERACTIVE MAP -->
-  <div id="view-map" class="view-content" style="padding: 10px;">
+  <!-- VIEW 2: INTERACTIVE MAP (WITH DAY FILTER) -->
+  <div id="view-map" class="view-content" style="padding: 12px 16px;">
+    <!-- Map Day Filter Buttons -->
+    <div class="filter-scroll" id="mapDayFilter" style="margin-bottom: 8px;">
+      <button class="pill-btn active" onclick="filterMapDay('All', this)">หมุดทั้งหมด</button>
+      <button class="pill-btn" onclick="filterMapDay('Wishlist', this)">📌 Wishlist</button>
+      <button class="pill-btn" onclick="filterMapDay('Day 1', this)">Day 1</button>
+      <button class="pill-btn" onclick="filterMapDay('Day 2', this)">Day 2</button>
+      <button class="pill-btn" onclick="filterMapDay('Day 3', this)">Day 3</button>
+      <button class="pill-btn" onclick="filterMapDay('Day 4', this)">Day 4</button>
+      <button class="pill-btn" onclick="filterMapDay('Day 5', this)">Day 5</button>
+    </div>
     <div id="mapContainer"></div>
   </div>
 
@@ -301,29 +325,9 @@
       </div>
 
       <div class="form-group">
-        <label>ชื่อภาษาจีน (สำหรับแผนที่จีน / Didi)</label>
-        <input type="text" id="inputChinese" placeholder="เช่น 外滩, 豫园">
-      </div>
-
-      <div class="form-group">
-        <label>สถานีรถไฟใต้ดิน (Metro Exit)</label>
-        <input type="text" id="inputMetro" placeholder="เช่น Line 2/10 - East Nanjing Rd. (Exit 7)">
-      </div>
-
-      <div class="form-group">
-        <label>หมวดหมู่</label>
-        <select id="inputCat">
-          <option value="📸 Landmark">📸 Landmark / จุดถ่ายรูป</option>
-          <option value="🍜 ของกิน">🍜 ของกิน / อาหาร</option>
-          <option value="☕ คาเฟ่">☕ คาเฟ่ / เครื่องดื่ม</option>
-          <option value="🛍️ ช้อปปิ้ง">🛍️ ช้อปปิ้ง</option>
-          <option value="🎢 เที่ยว/กิจกรรม">🎢 เที่ยว / กิจกรรม</option>
-        </select>
-      </div>
-
-      <div class="form-group">
         <label>วันที่</label>
         <select id="inputDay">
+          <option value="Wishlist">📌 ยังไม่ระบุวัน (Wishlist / กองไว้ก่อน)</option>
           <option value="Day 1">Day 1</option>
           <option value="Day 2">Day 2</option>
           <option value="Day 3">Day 3</option>
@@ -338,7 +342,29 @@
           <option value="ช่วงเช้า (Morning)">ช่วงเช้า (Morning)</option>
           <option value="ช่วงบ่าย (Afternoon)">ช่วงบ่าย (Afternoon)</option>
           <option value="ช่วงค่ำ (Evening)">ช่วงค่ำ (Evening)</option>
+          <option value="ยังไม่ระบุเวลา">ยืดหยุ่น / ยังไม่กำหนดเวลา</option>
         </select>
+      </div>
+
+      <div class="form-group">
+        <label>หมวดหมู่</label>
+        <select id="inputCat">
+          <option value="📸 Landmark">📸 Landmark / จุดถ่ายรูป</option>
+          <option value="🍜 ของกิน">🍜 ของกิน / อาหาร</option>
+          <option value="☕ คาเฟ่">☕ คาเฟ่ / เครื่องดื่ม</option>
+          <option value="🛍️ ช้อปปิ้ง">🛍️ ช้อปปิ้ง</option>
+          <option value="🎢 เที่ยว/กิจกรรม">🎢 เที่ยว / กิจกรรม</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>ชื่อภาษาจีน (สำหรับแผนที่จีน / Didi)</label>
+        <input type="text" id="inputChinese" placeholder="เช่น 外滩, 豫园">
+      </div>
+
+      <div class="form-group">
+        <label>สถานีรถไฟใต้ดิน (Metro Exit)</label>
+        <input type="text" id="inputMetro" placeholder="เช่น Line 2/10 - East Nanjing Rd. (Exit 7)">
       </div>
 
       <div class="form-group">
@@ -380,8 +406,19 @@
     let allPlaces = [];
     let currentDayFilter = 'All';
     let currentCatFilter = 'All';
+    let currentMapDayFilter = 'All';
     let mapInstance = null;
     let markersLayer = null;
+
+    // Palette สีหมุดประจำแต่ละวัน
+    const dayColors = {
+      'Wishlist': '#A855F7', // ม่วง
+      'Day 1': '#38BDF8',    // ฟ้า
+      'Day 2': '#FB923C',    // ส้ม
+      'Day 3': '#4ADE80',    // เขียว
+      'Day 4': '#F472B6',    // ชมพู
+      'Day 5': '#FACC15'     // เหลือง
+    };
 
     const landmarkDatabase = [
       { name: "The Bund", aliases: ["the bund", "เดอะบันด์", "หาดไว่ทาน", "ไว่ทาน", "waitan"], cn: "外滩", metro: "Line 2/10 - East Nanjing Rd. (Exit 7)", cat: "📸 Landmark", coords: [31.2397, 121.4904] },
@@ -507,7 +544,7 @@
       listEl.innerHTML = '';
 
       let filtered = allPlaces;
-      if (currentDayFilter !== 'All') filtered = filtered.filter(p => p.day === currentDayFilter);
+      if (currentDayFilter !== 'All') filtered = filtered.filter(p => (p.day || 'Wishlist') === currentDayFilter);
       if (currentCatFilter !== 'All') filtered = filtered.filter(p => (p.category || '📸 Landmark') === currentCatFilter);
 
       if (filtered.length === 0) {
@@ -515,9 +552,9 @@
         return;
       }
 
-      const slots = ['ช่วงเช้า (Morning)', 'ช่วงบ่าย (Afternoon)', 'ช่วงค่ำ (Evening)'];
+      const slots = ['ช่วงเช้า (Morning)', 'ช่วงบ่าย (Afternoon)', 'ช่วงค่ำ (Evening)', 'ยังไม่ระบุเวลา'];
       slots.forEach(slot => {
-        const inSlot = filtered.filter(p => p.timeSlot === slot);
+        const inSlot = filtered.filter(p => (p.timeSlot || 'ช่วงเช้า (Morning)') === slot);
         if (inSlot.length > 0) {
           const heading = document.createElement('div');
           heading.style = 'margin: 14px 0 6px; font-size: 0.88rem; font-weight: 600; color: var(--text-sub);';
@@ -536,7 +573,7 @@
                 <div>
                   <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
                     <span class="badge-tag">${place.category || '📸 Landmark'}</span>
-                    <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">[${place.day}]</span>
+                    <span style="font-size:0.75rem; color:${dayColors[place.day] || 'var(--primary)'}; font-weight:600;">[${place.day || 'Wishlist'}]</span>
                   </div>
                   <div class="place-name">${place.placeName}</div>
                 </div>
@@ -563,6 +600,7 @@
       });
     }
 
+    // Interactive Map with Day Filter
     function initMap() {
       if (!mapInstance) {
         mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
@@ -577,29 +615,60 @@
       }, 200);
     }
 
+    function filterMapDay(day, btn) {
+      currentMapDayFilter = day;
+      document.querySelectorAll('#mapDayFilter .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateMapMarkers();
+    }
+
     function updateMapMarkers() {
-      if (!markersLayer) return;
+      if (!markersLayer || !mapInstance) return;
       markersLayer.clearLayers();
 
-      allPlaces.forEach((p, idx) => {
+      let placesToMap = allPlaces;
+      if (currentMapDayFilter !== 'All') {
+        placesToMap = placesToMap.filter(p => (p.day || 'Wishlist') === currentMapDayFilter);
+      }
+
+      const bounds = [];
+
+      placesToMap.forEach((p, idx) => {
         const found = landmarkDatabase.find(lm => 
           lm.name.toLowerCase() === p.placeName.toLowerCase() || 
           lm.cn === p.chineseName
         );
         let coord = found ? found.coords : [31.2304 + (Math.sin(idx) * 0.02), 121.4737 + (Math.cos(idx) * 0.02)];
+        bounds.push(coord);
 
-        const marker = L.marker(coord).addTo(markersLayer);
+        // กำหนดสีหมุดตามวันที่กำหนด
+        const pinColor = dayColors[p.day] || '#38BDF8';
+        const dayLabel = (p.day === 'Wishlist') ? '📌' : (p.day || 'D1').replace('Day ', 'D');
+
+        const customIcon = L.divIcon({
+          className: 'custom-icon-wrapper',
+          html: `<div class="custom-map-pin" style="background-color: ${pinColor};">${dayLabel}</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+
+        const marker = L.marker(coord, { icon: customIcon }).addTo(markersLayer);
         const amapUrl = `https://uri.amap.com/search?keyword=${encodeURIComponent((p.chineseName || p.placeName) + ' 上海')}`;
 
         marker.bindPopup(`
           <div style="font-family:'Prompt',sans-serif; min-width:140px; color:#1E293B;">
-            <b>${p.placeName}</b><br>
+            <b style="color:${pinColor};">[${p.day || 'Wishlist'}]</b> <b>${p.placeName}</b><br>
             <span style="color:#991B1B;">${p.chineseName || ''}</span><br>
             <small style="color:#0284C7;">🚇 ${p.metro || '-'}</small><br>
             <a href="${amapUrl}" target="_blank" style="display:inline-block; margin-top:4px; color:#0284C7; font-weight:600;">เปิดใน Amap ➔</a>
           </div>
         `);
       });
+
+      // ซูมจัดตำแหน่งแผนที่ให้อยู่ในระยะมองเห็นของกลุ่มหมุด
+      if (bounds.length > 0) {
+        mapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      }
     }
 
     function convertCNY() {
@@ -648,6 +717,8 @@
       document.getElementById('inputMetro').value = '';
       document.getElementById('inputMap').value = '';
       document.getElementById('inputNote').value = '';
+      document.getElementById('inputDay').value = 'Wishlist';
+      document.getElementById('inputSlot').value = 'ช่วงเช้า (Morning)';
       document.getElementById('autofillHint').innerText = '⚡ พิมพ์ชื่อแลนด์มาร์ก ระบบจะดึงชื่อจีนและสถานี Metro ให้อัตโนมัติ';
       document.getElementById('entryModal').style.display = 'flex';
     }
@@ -658,8 +729,8 @@
       document.getElementById('modalHeading').innerText = 'แก้ไขสถานที่';
       document.getElementById('editRowIndex').value = p.rowIndex;
       document.getElementById('inputCat').value = p.category || '📸 Landmark';
-      document.getElementById('inputDay').value = p.day;
-      document.getElementById('inputSlot').value = p.timeSlot;
+      document.getElementById('inputDay').value = p.day || 'Wishlist';
+      document.getElementById('inputSlot').value = p.timeSlot || 'ช่วงเช้า (Morning)';
       document.getElementById('inputName').value = p.placeName;
       document.getElementById('inputChinese').value = p.chineseName || '';
       document.getElementById('inputMetro').value = p.metro || '';
