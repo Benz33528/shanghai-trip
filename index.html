@@ -418,14 +418,13 @@
     let mapInstance = null;
     let markersLayer = null;
 
-    // Palette สีหมุดประจำแต่ละวัน
     const dayColors = {
-      'Wishlist': '#A855F7', // ม่วง
-      'Day 1': '#38BDF8',    // ฟ้า
-      'Day 2': '#FB923C',    // ส้ม
-      'Day 3': '#4ADE80',    // เขียว
-      'Day 4': '#F472B6',    // ชมพู
-      'Day 5': '#FACC15'     // เหลือง
+      'Wishlist': '#A855F7',
+      'Day 1': '#38BDF8',
+      'Day 2': '#FB923C',
+      'Day 3': '#4ADE80',
+      'Day 4': '#F472B6',
+      'Day 5': '#FACC15'
     };
 
     const landmarkDatabase = [
@@ -458,24 +457,32 @@
       });
     }
 
+    // Auto-Fill ที่ปรับแต่งความแม่นยำสูง (ไม่ดักคำมั่ว)
     function handlePlaceNameInput(val) {
       const query = val.trim().toLowerCase();
-      if (!query) {
-        document.getElementById('autofillHint').innerText = '⚡ พิมพ์ชื่อแลนด์มาร์ก ระบบจะดึงชื่อจีนและสถานี Metro ให้อัตโนมัติ';
+      const hintEl = document.getElementById('autofillHint');
+
+      if (!query || query.length < 3) {
+        hintEl.innerText = '⚡ พิมพ์ชื่อแลนด์มาร์ก ระบบจะดึงชื่อจีนและสถานี Metro ให้อัตโนมัติ';
         return;
       }
 
-      const match = landmarkDatabase.find(item => 
-        item.name.toLowerCase() === query ||
-        item.cn.toLowerCase() === query ||
-        item.aliases.some(alias => query.includes(alias) || alias.includes(query))
-      );
+      const match = landmarkDatabase.find(item => {
+        const nameMatch = item.name.toLowerCase() === query;
+        const cnMatch = item.cn === val.trim();
+        const aliasExactMatch = item.aliases.some(alias => alias.toLowerCase() === query);
+        const aliasContained = item.aliases.some(alias => alias.length >= 3 && query.includes(alias.toLowerCase()));
+
+        return nameMatch || cnMatch || aliasExactMatch || aliasContained;
+      });
 
       if (match) {
         document.getElementById('inputChinese').value = match.cn;
         document.getElementById('inputMetro').value = match.metro;
         document.getElementById('inputCat').value = match.cat;
-        document.getElementById('autofillHint').innerText = `✨ พบข้อมูลอัตโนมัติ: ${match.cn} (Metro: ${match.metro})`;
+        hintEl.innerText = `✨ พบข้อมูลอัตโนมัติ: ${match.cn} (Metro: ${match.metro})`;
+      } else {
+        hintEl.innerText = '⚡ พิมพ์ชื่อแลนด์มาร์ก ระบบจะดึงชื่อจีนและสถานี Metro ให้อัตโนมัติ';
       }
     }
 
@@ -609,7 +616,7 @@
       });
     }
 
-    // Interactive Map with Day Filter
+    // Interactive Map
     function initMap() {
       if (!mapInstance) {
         mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
