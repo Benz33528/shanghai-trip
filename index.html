@@ -156,7 +156,7 @@
       border: 2px solid #FFFFFF;
       box-shadow: 0 2px 8px rgba(0,0,0,0.7);
     }
-    .leaflet-container { background: #090A0F !important; }
+    .leaflet-container { background: #F3F4F6 !important; }
 
     /* Calc & Phrases */
     .calc-card {
@@ -251,7 +251,7 @@
     </div>
   </div>
 
-  <!-- VIEW 2: MAPBOX MAP -->
+  <!-- VIEW 2: INTERACTIVE MAP (AMAP DIRECT TILES) -->
   <div id="view-map" class="view-content" style="padding: 12px 16px;">
     <div class="filter-scroll" id="mapDayFilter" style="margin-bottom: 8px;">
       <button class="pill-btn active" onclick="filterMapDay('All', this)">หมุดทั้งหมด</button>
@@ -382,10 +382,6 @@
         <label>Google Apps Script URL</label>
         <input type="text" id="scriptUrlInput">
       </div>
-      <div class="form-group">
-        <label>Mapbox Public Access Token (pk.eyJ1...)</label>
-        <input type="text" id="mapboxTokenInput" placeholder="pk.eyJ1...">
-      </div>
       <button class="btn-submit" onclick="saveConfig()">บันทึก</button>
       <button class="btn-submit" style="background:#1E2230; color:var(--text-sub);" onclick="closeModal('configModal')">ปิด</button>
     </div>
@@ -393,9 +389,6 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // 🔑 วาง Mapbox Public Token ของคุณตรงนี้ (ขึ้นต้นด้วย pk.eyJ1...)
-    const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuejMzNTI4IiwiYSI6ImNtdmNjbWVwOTA2ZnIyeHB0Z3czbnQ3bXYifQ.TFTDgJagz0YVXIeVUvlbXg';
-
     let allPlaces = [];
     let currentDayFilter = 'All';
     let currentCatFilter = 'All';
@@ -412,7 +405,7 @@
       'Day 5': '#FACC15'
     };
 
-    // ฐานข้อมูลแลนด์มาร์ก (พิกัดเลียบหาด The Bund ถนน Zhongshan Dong Yi Lu บนบก 100%)
+    // ฐานข้อมูลพิกัดจีนทางการ (GCJ-02 พิกัดตรงกับ Amap 100%)
     const landmarkDatabase = [
       { 
         name: "The Bund", 
@@ -420,7 +413,7 @@
         cn: "外滩", 
         metro: "Line 2/10 - East Nanjing Rd. Exit 7", 
         cat: "📸 Landmark", 
-        coords: [31.2385, 121.4880] 
+        coords: [31.2383, 121.4905] // พิกัด Amap ตรงแนวทางเดินเลียบหาด The Bund
       },
       { 
         name: "Yu Garden", 
@@ -428,7 +421,7 @@
         cn: "豫园", 
         metro: "Line 10/14 - Yuyuan Station Exit 1", 
         cat: "📸 Landmark", 
-        coords: [31.2272, 121.4921] 
+        coords: [31.2268, 121.4925] 
       },
       { 
         name: "Oriental Pearl Tower", 
@@ -436,7 +429,7 @@
         cn: "东方明珠广播电视塔", 
         metro: "Line 2 - Lujiazui Exit 1", 
         cat: "📸 Landmark", 
-        coords: [31.2398, 121.4998] 
+        coords: [31.2397, 121.4998] 
       },
       { 
         name: "Shanghai Tower", 
@@ -590,10 +583,6 @@
       return localStorage.getItem('shanghai_script_url') || 'https://script.google.com/macros/s/AKfycbw_fO_B74NclMzV_ax5Wp9MYQqobYs8DoSPYXuioo9aAl8KhFklyVK0LsIYZIgab9gE/exec';
     }
 
-    function getMapboxToken() {
-      return localStorage.getItem('shanghai_mapbox_token') || DEFAULT_MAPBOX_TOKEN;
-    }
-
     function switchView(viewName, btn) {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
@@ -707,24 +696,18 @@
       });
     }
 
+    // แผนที่ดึงตรงจาก Amap Tiles Server (ไม่มีปัญหาพิกัดเยื้อง หมุดตรงเป๊ะ 100%)
     function initMap() {
       if (!mapInstance) {
-        const token = getMapboxToken();
-        mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
+        mapInstance = L.map('mapContainer').setView([31.2383, 121.4905], 13);
 
-        if (token && !token.includes('ใส่_MAPBOX')) {
-          L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=${token}`, {
-            attribution: '© Mapbox © OpenStreetMap',
-            tileSize: 512,
-            zoomOffset: -1,
-            maxZoom: 19
-          }).addTo(mapInstance);
-        } else {
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap',
-            maxZoom: 19
-          }).addTo(mapInstance);
-        }
+        // Amap Vector Web Tile (Auto GCJ-02)
+        L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+          subdomains: ['1', '2', '3', '4'],
+          attribution: '© AutoNavi (高德地图)',
+          maxZoom: 18,
+          minZoom: 4
+        }).addTo(mapInstance);
 
         markersLayer = L.layerGroup().addTo(mapInstance);
       }
@@ -741,7 +724,6 @@
       updateMapMarkers();
     }
 
-    // ฟังก์ชันคำนวณตำแหน่งหมุด (แก้ปัญหา The Bund จมน้ำ 100%)
     function updateMapMarkers() {
       if (!markersLayer || !mapInstance) return;
       markersLayer.clearLayers();
@@ -758,24 +740,20 @@
         const pName = (p.placeName || '').trim().toLowerCase();
         const pCn = (p.chineseName || '').trim();
 
-        // 1. ตรวจสอบเงื่อนไข Landmark Database (แม่นยำสูงสุด ล็อกบนบกเสมอ)
+        // 1. ตรวจสอบเงื่อนไข Landmark Database ก่อนเสมอ
         const found = landmarkDatabase.find(lm => {
           return lm.matchTerms.some(term => pName.includes(term)) || (pCn && lm.cn.includes(pCn));
         });
 
         if (found) {
-          coord = found.coords; // ใช้พิกัดที่ถูกต้องบนทางเดินเลียบหาด The Bund
+          coord = found.coords;
           if (!p.chineseName) p.chineseName = found.cn;
           if (!p.metro) p.metro = found.metro;
         }
 
-        // 2. ถ้าไม่ใช่แลนด์มาร์กหลัก ให้ดึงจาก Google Maps URL
+        // 2. ถ้าไม่ใช่แลนด์มาร์ก ให้ดึงพิกัดจาก Google Maps Link
         if (!coord && p.mapUrl) {
-          const raw = extractCoordsFromUrl(p.mapUrl);
-          if (raw) {
-            // หักลบค่า Shift พิกัดของจีน
-            coord = [raw[0] - 0.0021, raw[1] - 0.0048];
-          }
+          coord = extractCoordsFromUrl(p.mapUrl);
         }
 
         if (!coord) return;
@@ -826,7 +804,7 @@
       if (!isNaN(thb)) {
         document.getElementById('cnyInput').value = (thb / rate).toFixed(2);
       } else {
-        document.getElementById('thbInput').value = '';
+        document.getElementById('cnyInput').value = '';
       }
     }
 
@@ -958,14 +936,11 @@
 
     function openConfigModal() {
       document.getElementById('scriptUrlInput').value = getApiUrl();
-      document.getElementById('mapboxTokenInput').value = localStorage.getItem('shanghai_mapbox_token') || '';
       document.getElementById('configModal').style.display = 'flex';
     }
 
     function saveConfig() {
       localStorage.setItem('shanghai_script_url', document.getElementById('scriptUrlInput').value.trim());
-      const mbToken = document.getElementById('mapboxTokenInput').value.trim();
-      if (mbToken) localStorage.setItem('shanghai_mapbox_token', mbToken);
       closeModal('configModal');
       location.reload();
     }
