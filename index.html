@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <!-- Leaflet CSS for Map -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
@@ -72,7 +72,7 @@
     .view-content { display: none; padding: 16px 20px; }
     .view-content.active { display: block; }
 
-    /* Day & Category Filters */
+    /* Filters */
     .filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
     .filter-scroll::-webkit-scrollbar { display: none; }
     .pill-btn {
@@ -100,9 +100,7 @@
       border-radius: var(--radius);
       padding: 16px;
       margin-bottom: 12px;
-      position: relative;
       box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-      transition: all 0.2s;
     }
     .place-card.is-done {
       background: #0E1017;
@@ -143,7 +141,7 @@
     .btn-check { background: rgba(16, 185, 129, 0.15); color: #34D399; margin-left: auto; font-weight: 600; }
     .place-card.is-done .btn-check { background: #1E2230; color: #64748B; }
 
-    /* Map View Elements */
+    /* Map Elements */
     #mapContainer { height: calc(100vh - 235px); width: 100%; border-radius: 14px; border: 1px solid var(--border); }
     .custom-map-pin {
       width: 28px;
@@ -159,7 +157,13 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.5);
     }
 
-    /* Converter & Phrases Styles */
+    /* Minimal Dark Mode on Map Tiles */
+    .leaflet-tile {
+      filter: brightness(0.65) invert(1) contrast(2.8) hue-rotate(200deg) saturate(0.35) !important;
+    }
+    .leaflet-container { background: #090A0F !important; }
+
+    /* Calc & Phrases */
     .calc-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px;
     }
@@ -204,14 +208,6 @@
       width: 100%; padding: 13px; background: var(--primary); color: #090A0F; border: none;
       border-radius: 10px; font-size: 0.95rem; font-weight: 600; margin-top: 8px; cursor: pointer;
     }
-
-    /* CSS Dark Mode Filter สำหรับ Leaflet Map */
-    .leaflet-tile {
-      filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) !important;
-    }
-    .leaflet-container {
-      background: #090a0f !important;
-    }
   </style>
 </head>
 <body>
@@ -236,7 +232,6 @@
 
   <!-- VIEW 1: ITINERARY LIST -->
   <div id="view-itinerary" class="view-content active">
-    <!-- Day filter -->
     <div class="filter-scroll" id="dayFilter">
       <button class="pill-btn active" onclick="filterDay('All', this)">ทั้งหมด</button>
       <button class="pill-btn" onclick="filterDay('Wishlist', this)">📌 Wishlist</button>
@@ -247,7 +242,6 @@
       <button class="pill-btn" onclick="filterDay('Day 5', this)">Day 5</button>
     </div>
 
-    <!-- Category filter -->
     <div class="filter-scroll" id="catFilter">
       <button class="pill-btn active" onclick="filterCategory('All', this)">ทุกหมวด</button>
       <button class="pill-btn" onclick="filterCategory('🍜 ของกิน', this)">🍜 ของกิน</button>
@@ -262,9 +256,8 @@
     </div>
   </div>
 
-  <!-- VIEW 2: INTERACTIVE MAP (WITH DAY FILTER) -->
+  <!-- VIEW 2: INTERACTIVE MAP -->
   <div id="view-map" class="view-content" style="padding: 12px 16px;">
-    <!-- Map Day Filter Buttons -->
     <div class="filter-scroll" id="mapDayFilter" style="margin-bottom: 8px;">
       <button class="pill-btn active" onclick="filterMapDay('All', this)">หมุดทั้งหมด</button>
       <button class="pill-btn" onclick="filterMapDay('Wishlist', this)">📌 Wishlist</button>
@@ -281,10 +274,9 @@
   <div id="view-converter" class="view-content">
     <div class="calc-card">
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
-        <span>เรทแปลงค่าเงิน (ปรับเปลี่ยนได้)</span>
+        <span>เรทแปลงค่าเงิน</span>
         <span>1 CNY ≈ <input type="number" id="rateInput" value="5.00" step="0.05" style="width:65px; padding:2px 4px; text-align:center; background:#090A0F; color:#FFF; border:1px solid var(--border);" onchange="convertCNY()"> THB</span>
       </div>
-      
       <div class="calc-input-group">
         <span class="calc-currency">CNY ¥</span>
         <input type="number" id="cnyInput" placeholder="0" oninput="convertCNY()">
@@ -295,21 +287,11 @@
         <input type="number" id="thbInput" placeholder="0" oninput="convertTHB()">
       </div>
     </div>
-
-    <div class="calc-card">
-      <div style="font-size:0.9rem; font-weight:600; margin-bottom:8px; color:var(--primary);">💡 สรุปราคาเทียบคร่าวๆ</div>
-      <div style="font-size:0.85rem; color:var(--text-sub); line-height:1.6;">
-        • ชานมไข่มุกทั่วไป: 15–20 ¥ (~75–100 ฿)<br>
-        • รถไฟใต้ดิน Metro: 3–6 ¥ (~15–30 ฿)<br>
-        • แท็กซี่ Didi เริ่มต้น: 14–16 ¥ (~70–80 ฿)<br>
-        • เสี่ยวหลงเปาร้านดัง: 30–45 ¥ (~150–225 ฿)
-      </div>
-    </div>
   </div>
 
   <!-- VIEW 4: SURVIVAL CHINESE -->
   <div id="view-phrases" class="view-content">
-    <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">แตะที่การ์ดเพื่อคัดลอก หรือนำไปยื่นให้คนจีนดูได้ทันที</div>
+    <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px;">แตะที่การ์ดเพื่อคัดลอก</div>
     <div id="phrasesList"></div>
   </div>
 
@@ -322,11 +304,10 @@
       <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px; color:var(--text-main);" id="modalHeading">เพิ่มสถานที่เที่ยว</div>
       <input type="hidden" id="editRowIndex" value="">
 
-      <!-- ตัวเลือกเทมเพลตสำหรับ Landmark ฮิต (เลือกได้ ถ้าไม่เลือกก็พิมพ์เองอิสระ) -->
       <div class="form-group">
-        <label>⚡ นำเข้าข้อมูล Landmark ยอดฮิต (ถ้ามี)</label>
+        <label>⚡ ดึงข้อมูลจาก Landmark ยอดฮิต (ถ้าต้องการ)</label>
         <select id="presetSelector" onchange="applyPreset(this.value)">
-          <option value="">-- ไม่เลือก (พิมพ์สถานที่เองอิสระ) --</option>
+          <option value="">-- พิมพ์เองอิสระ --</option>
         </select>
       </div>
 
@@ -369,18 +350,18 @@
       </div>
 
       <div class="form-group">
-        <label>ชื่อภาษาจีน (สำหรับแผนที่จีน / Didi)</label>
+        <label>ชื่อภาษาจีน (สำหรับ Didi / Amap)</label>
         <input type="text" id="inputChinese" placeholder="เช่น 外滩, 豫园">
       </div>
 
       <div class="form-group">
         <label>สถานีรถไฟใต้ดิน (Metro Exit)</label>
-        <input type="text" id="inputMetro" placeholder="เช่น Line 2 - Lujiazui (Exit 1)">
+        <input type="text" id="inputMetro" placeholder="เช่น Line 2 - Lujiazui Exit 1">
       </div>
 
       <div class="form-group">
-        <label>ลิงก์ Google Maps (ถ้ามี)</label>
-        <input type="url" id="inputMap" placeholder="https://maps.app.goo.gl/...">
+        <label>ลิงก์ Google Maps (ระบบจะดึงพิกัดจริงจากลิงก์ให้อัตโนมัติ)</label>
+        <input type="url" id="inputMap" placeholder="https://maps.app.goo.gl/... หรือลิงก์ที่มี @31.xxx,121.xxx">
       </div>
 
       <div class="form-group">
@@ -411,7 +392,6 @@
     </div>
   </div>
 
-  <!-- Leaflet JS for Map -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     let allPlaces = [];
@@ -430,28 +410,39 @@
       'Day 5': '#FACC15'
     };
 
+    // ฐานข้อมูลพิกัดแม่นยำสูง (อัปเดตระบบพิกัดจีน)
     const landmarkDatabase = [
-      { name: "The Bund (หาดไว่ทาน)", cn: "外滩", metro: "Line 2/10 - East Nanjing Rd. (Exit 7)", cat: "📸 Landmark", coords: [31.2397, 121.4904] },
-      { name: "Yu Garden (สวนอวี้หยวน)", cn: "豫园", metro: "Line 10/14 - Yuyuan Station (Exit 1)", cat: "📸 Landmark", coords: [31.2272, 121.4921] },
-      { name: "Oriental Pearl Tower (หอไข่มุก)", cn: "东方明珠广播电视塔", metro: "Line 2 - Lujiazui (Exit 1)", cat: "📸 Landmark", coords: [31.2398, 121.4998] },
-      { name: "Shanghai Tower (ตึกเซี่ยงไฮ้ทาวเวอร์)", cn: "上海中心大厦", metro: "Line 2/14 - Lujiazui (Exit 9)", cat: "📸 Landmark", coords: [31.2355, 121.5015] },
-      { name: "Nanjing Road (ถนนคนเดินนานจิง)", cn: "南京东路步行街", metro: "Line 2/10 - East Nanjing Rd. (Exit 1/4)", cat: "🛍️ ช้อปปิ้ง", coords: [31.2359, 121.4789] },
-      { name: "Shanghai Disneyland (ดิสนีย์แลนด์)", cn: "上海迪士尼度假区", metro: "Line 11 - Disney Resort (Exit 1)", cat: "🎢 เที่ยว/กิจกรรม", coords: [31.1440, 121.6570] },
-      { name: "Starbucks Reserve Roastery", cn: "星巴克臻选上海烘焙工坊", metro: "Line 2/12/13 - West Nanjing Rd. (Exit 11)", cat: "☕ คาเฟ่", coords: [31.2312, 121.4604] },
-      { name: "Xintiandi (ซินเทียนตี้)", cn: "新天地", metro: "Line 10/13 - Xintiandi (Exit 6)", cat: "🛍️ ช้อปปิ้ง", coords: [31.2186, 121.4754] },
-      { name: "Tianzifang (เถียนจื่อฟาง)", cn: "田子坊", metro: "Line 9 - Dapuqiao (Exit 1)", cat: "🛍️ ช้อปปิ้ง", coords: [31.2091, 121.4688] },
-      { name: "Jing'an Temple (วัดจิ้งอัน)", cn: "静安寺", metro: "Line 2/7/14 - Jing'an Temple (Exit 1)", cat: "📸 Landmark", coords: [31.2235, 121.4465] },
-      { name: "Jade Buddha Temple (วัดพระหยก)", cn: "玉佛禅寺", metro: "Line 13 - Jiangning Rd. (Exit 3)", cat: "📸 Landmark", coords: [31.2427, 121.4429] },
-      { name: "Wukang Road (อาคารหวู่คัง)", cn: "武康大楼 / 武康路", metro: "Line 10/11 - Jiaotong University (Exit 7)", cat: "📸 Landmark", coords: [31.2052, 121.4398] },
-      { name: "People's Square (จัตุรัสประชาชน)", cn: "人民广场", metro: "Line 1/2/8 - People's Square (Exit 19)", cat: "📸 Landmark", coords: [31.2304, 121.4737] },
-      { name: "Zhujiajiao (เมืองโบราณจูเจียเจี่ยว)", cn: "朱家角古镇", metro: "Line 17 - Zhujiajiao (Exit 1)", cat: "📸 Landmark", coords: [31.1114, 121.0531] },
-      { name: "North Bund Green Land (ไว่ทานเหนือ)", cn: "北外滩滨江绿地", metro: "Line 12 - International Cruise Terminal (Exit 3)", cat: "📸 Landmark", coords: [31.2488, 121.4988] },
-      { name: "Pop Mart Flagship (หนานจิงตงลู่)", cn: "泡泡玛特全球旗舰店 (南京东路)", metro: "Line 2/10 - East Nanjing Rd. (Exit 2)", cat: "🛍️ ช้อปปิ้ง", coords: [31.2372, 121.4820] }
+      { name: "The Bund (หาดไว่ทาน)", cn: "外滩", metro: "Line 2/10 - East Nanjing Rd. Exit 7", cat: "📸 Landmark", coords: [31.2397, 121.4904] },
+      { name: "Yu Garden (สวนอวี้หยวน)", cn: "豫园", metro: "Line 10/14 - Yuyuan Station Exit 1", cat: "📸 Landmark", coords: [31.2272, 121.4921] },
+      { name: "Oriental Pearl Tower (หอไข่มุก)", cn: "东方明珠广播电视塔", metro: "Line 2 - Lujiazui Exit 1", cat: "📸 Landmark", coords: [31.2398, 121.4998] },
+      { name: "Shanghai Tower (เซี่ยงไฮ้ทาวเวอร์)", cn: "上海中心大厦", metro: "Line 2/14 - Lujiazui Exit 9", cat: "📸 Landmark", coords: [31.2355, 121.5015] },
+      { name: "Nanjing Road (ถนนคนเดินนานจิง)", cn: "南京东路步行街", metro: "Line 2/10 - East Nanjing Rd. Exit 1/4", cat: "🛍️ ช้อปปิ้ง", coords: [31.2359, 121.4789] },
+      { name: "Shanghai Disneyland (ดิสนีย์แลนด์)", cn: "上海迪士尼度假区", metro: "Line 11 - Disney Resort Exit 1", cat: "🎢 เที่ยว/กิจกรรม", coords: [31.1440, 121.6570] },
+      { name: "Starbucks Reserve Roastery", cn: "星巴克臻选上海烘焙工坊", metro: "Line 2/12/13 - West Nanjing Rd. Exit 11", cat: "☕ คาเฟ่", coords: [31.2312, 121.4604] },
+      { name: "Xintiandi (ซินเทียนตี้)", cn: "新天地", metro: "Line 10/13 - Xintiandi Exit 6", cat: "🛍️ ช้อปปิ้ง", coords: [31.2186, 121.4754] },
+      { name: "Tianzifang (เถียนจื่อฟาง)", cn: "田子坊", metro: "Line 9 - Dapuqiao Exit 1", cat: "🛍️ ช้อปปิ้ง", coords: [31.2091, 121.4688] },
+      { name: "Jing'an Temple (วัดจิ้งอัน)", cn: "静安寺", metro: "Line 2/7/14 - Jing'an Temple Exit 1", cat: "📸 Landmark", coords: [31.2235, 121.4465] },
+      { name: "Jade Buddha Temple (วัดพระหยก)", cn: "玉佛禅寺", metro: "Line 13 - Jiangning Rd. Exit 3", cat: "📸 Landmark", coords: [31.2427, 121.4429] },
+      { name: "Wukang Road (อาคารหวู่คัง)", cn: "武康大楼 / 武康路", metro: "Line 10/11 - Jiaotong University Exit 7", cat: "📸 Landmark", coords: [31.2052, 121.4398] },
+      { name: "People's Square (จัตุรัสประชาชน)", cn: "人民广场", metro: "Line 1/2/8 - People's Square Exit 19", cat: "📸 Landmark", coords: [31.2304, 121.4737] },
+      { name: "Zhujiajiao (เมืองโบราณจูเจียเจี่ยว)", cn: "朱家角古镇", metro: "Line 17 - Zhujiajiao Exit 1", cat: "📸 Landmark", coords: [31.1114, 121.0531] },
+      { name: "North Bund Green Land (ไว่ทานเหนือ)", cn: "北外滩滨江绿地", metro: "Line 12 - International Cruise Terminal Exit 3", cat: "📸 Landmark", coords: [31.2488, 121.4988] },
+      { name: "Pop Mart Flagship (หนานจิงตงลู่)", cn: "泡泡玛特全球旗舰店 (南京东路)", metro: "Line 2/10 - East Nanjing Rd. Exit 2", cat: "🛍️ ช้อปปิ้ง", coords: [31.2372, 121.4820] }
     ];
+
+    // ฟังก์ชันสกัด Coordinates ออกจาก URL ของ Google Maps
+    function extractCoordsFromUrl(url) {
+      if (!url) return null;
+      const match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (match) {
+        return [parseFloat(match[1]), parseFloat(match[2])];
+      }
+      return null;
+    }
 
     function populatePresets() {
       const select = document.getElementById('presetSelector');
-      select.innerHTML = '<option value="">-- ไม่เลือก (พิมพ์สถานที่เองอิสระ) --</option>';
+      select.innerHTML = '<option value="">-- พิมพ์เองอิสระ --</option>';
       landmarkDatabase.forEach((item, index) => {
         const option = document.createElement('option');
         option.value = index;
@@ -460,7 +451,6 @@
       });
     }
 
-    // ทำงานเฉพาะตอนผู้ใช้ "เลือกจงใจคลิก" ที่ Dropdown เท่านั้น ไม่แอบทำงานตอนพิมพ์
     function applyPreset(index) {
       if (index === '') return;
       const lm = landmarkDatabase[index];
@@ -479,10 +469,8 @@
       { cn: "洗手间在哪里？", py: "Xǐshǒujiān zài nǎlǐ?", th: "ห้องน้ำอยู่ที่ไหน? 🚻" },
       { cn: "不要辣 / 微辣", py: "Bù yào là / Wēi là", th: "ไม่เผ็ด / เผ็ดน้อย 🌶️" },
       { cn: "可以打包吗？", py: "Kěyǐ dǎbāo ma?", th: "ห่อกลับบ้านได้ไหม? 🥡" },
-      { cn: "发票", py: "Fāpiào", th: "ขอใบเสร็จ 🧾" },
       { cn: "请问地铁站在哪里？", py: "Qǐngwèn dìtiězhàn zài nǎlǐ?", th: "สถานีรถไฟใต้ดินอยู่ไหน? 🚇" },
-      { cn: "太贵了，可以便宜点吗？", py: "Tài guì le, kěyǐ piányí diǎn ma?", th: "แพงไป ลดราคาหน่อยได้ไหม? 🏷️" },
-      { cn: "请带我去这里", py: "Qǐng dài wǒ qù zhèlǐ", th: "ช่วยพาฉันไปที่นี่หน่อย (เปิดให้คนขับดู) 🚕" }
+      { cn: "请带我去这里", py: "Qǐng dài wǒ qù zhèlǐ", th: "ช่วยพาฉันไปที่นี่หน่อย 🚕" }
     ];
 
     function getApiUrl() {
@@ -602,12 +590,13 @@
       });
     }
 
-    // Interactive Map
+    // แผนที่ระบบใหม่: ใช้แผนที่ CARTO Voyager ทันสมัย คมชัด โครงสร้างปี 2026
     function initMap() {
       if (!mapInstance) {
         mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap',
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          attribution: '© OpenStreetMap, © CARTO',
+          subdomains: 'abcd',
           maxZoom: 19
         }).addTo(mapInstance);
         markersLayer = L.layerGroup().addTo(mapInstance);
@@ -625,6 +614,7 @@
       updateMapMarkers();
     }
 
+    // ปักหมุดเฉพาะจุดที่มีพิกัดจริงเท่านั้น (ไม่สุ่มมั่ว 100%)
     function updateMapMarkers() {
       if (!markersLayer || !mapInstance) return;
       markersLayer.clearLayers();
@@ -636,12 +626,26 @@
 
       const bounds = [];
 
-      placesToMap.forEach((p, idx) => {
+      placesToMap.forEach((p) => {
+        let coord = null;
+
+        // 1. ตรวจสอบจากลิสต์ Landmark
         const found = landmarkDatabase.find(lm => 
           lm.name.toLowerCase().includes(p.placeName.toLowerCase()) || 
-          lm.cn === p.chineseName
+          (p.chineseName && lm.cn.includes(p.chineseName))
         );
-        let coord = found ? found.coords : [31.2304 + (Math.sin(idx) * 0.02), 121.4737 + (Math.cos(idx) * 0.02)];
+        if (found) {
+          coord = found.coords;
+        }
+
+        // 2. ถ้าไม่มีในลิสต์ ให้แกะพิกัดจริงจากลิงก์ Google Maps
+        if (!coord && p.mapUrl) {
+          coord = extractCoordsFromUrl(p.mapUrl);
+        }
+
+        // ถ้าไม่มีพิกัดจริง ข้ามไปเลย ไม่ปักหมุดมั่ว
+        if (!coord) return;
+
         bounds.push(coord);
 
         const pinColor = dayColors[p.day] || '#38BDF8';
@@ -831,7 +835,6 @@
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // Init
     populatePresets();
     loadPlaces();
     renderPhrases();
