@@ -154,12 +154,7 @@
       font-weight: 700;
       font-size: 0.75rem;
       border: 2px solid #FFFFFF;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-    }
-
-    /* Minimal Dark Mode on Map Tiles */
-    .leaflet-tile {
-      filter: brightness(0.65) invert(1) contrast(2.8) hue-rotate(200deg) saturate(0.35) !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.7);
     }
     .leaflet-container { background: #090A0F !important; }
 
@@ -256,7 +251,7 @@
     </div>
   </div>
 
-  <!-- VIEW 2: INTERACTIVE MAP -->
+  <!-- VIEW 2: MAPBOX MAP -->
   <div id="view-map" class="view-content" style="padding: 12px 16px;">
     <div class="filter-scroll" id="mapDayFilter" style="margin-bottom: 8px;">
       <button class="pill-btn active" onclick="filterMapDay('All', this)">หมุดทั้งหมด</button>
@@ -382,10 +377,14 @@
   <!-- Config Modal -->
   <div class="modal" id="configModal">
     <div class="modal-content">
-      <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px; color:var(--text-main);">ตั้งค่า Google Sheet API</div>
+      <div style="font-size:1.15rem; font-weight:600; margin-bottom:14px; color:var(--text-main);">ตั้งค่าระบบ</div>
       <div class="form-group">
-        <label>Apps Script Web App URL</label>
+        <label>Google Apps Script URL</label>
         <input type="text" id="scriptUrlInput">
+      </div>
+      <div class="form-group">
+        <label>Mapbox Public Access Token (pk.eyJ1...)</label>
+        <input type="text" id="mapboxTokenInput" placeholder="pk.eyJ1...">
       </div>
       <button class="btn-submit" onclick="saveConfig()">บันทึก</button>
       <button class="btn-submit" style="background:#1E2230; color:var(--text-sub);" onclick="closeModal('configModal')">ปิด</button>
@@ -394,6 +393,9 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
+    // 🔑 ใส่ Mapbox Token เริ่มต้นตรงนี้ได้เลย (หรือจะใส่ในปุ่มเฟือง ⚙️ หน้าเว็บก็ได้)
+    const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1IjoiYmVuejMzNTI4IiwiYSI6ImNtdmNjbWVwOTA2ZnIyeHB0Z3czbnQ3bXYifQ.TFTDgJagz0YVXIeVUvlbXg';
+
     let allPlaces = [];
     let currentDayFilter = 'All';
     let currentCatFilter = 'All';
@@ -410,7 +412,6 @@
       'Day 5': '#FACC15'
     };
 
-    // ฐานข้อมูลพิกัดแม่นยำสูง (อัปเดตระบบพิกัดจีน)
     const landmarkDatabase = [
       { name: "The Bund (หาดไว่ทาน)", cn: "外滩", metro: "Line 2/10 - East Nanjing Rd. Exit 7", cat: "📸 Landmark", coords: [31.2397, 121.4904] },
       { name: "Yu Garden (สวนอวี้หยวน)", cn: "豫园", metro: "Line 10/14 - Yuyuan Station Exit 1", cat: "📸 Landmark", coords: [31.2272, 121.4921] },
@@ -430,7 +431,6 @@
       { name: "Pop Mart Flagship (หนานจิงตงลู่)", cn: "泡泡玛特全球旗舰店 (南京东路)", metro: "Line 2/10 - East Nanjing Rd. Exit 2", cat: "🛍️ ช้อปปิ้ง", coords: [31.2372, 121.4820] }
     ];
 
-    // ฟังก์ชันสกัด Coordinates ออกจาก URL ของ Google Maps
     function extractCoordsFromUrl(url) {
       if (!url) return null;
       const match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
@@ -475,6 +475,10 @@
 
     function getApiUrl() {
       return localStorage.getItem('shanghai_script_url') || 'https://script.google.com/macros/s/AKfycbw_fO_B74NclMzV_ax5Wp9MYQqobYs8DoSPYXuioo9aAl8KhFklyVK0LsIYZIgab9gE/exec';
+    }
+
+    function getMapboxToken() {
+      return localStorage.getItem('shanghai_mapbox_token') || DEFAULT_MAPBOX_TOKEN;
     }
 
     function switchView(viewName, btn) {
@@ -590,15 +594,28 @@
       });
     }
 
-    // แผนที่ระบบใหม่: ใช้แผนที่ CARTO Voyager ทันสมัย คมชัด โครงสร้างปี 2026
+    // แผนที่ Mapbox Dark Theme (Modern, คมชัด, โครงสร้างเมืองปี 2026)
     function initMap() {
       if (!mapInstance) {
+        const token = getMapboxToken();
         mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          attribution: '© OpenStreetMap, © CARTO',
-          subdomains: 'abcd',
-          maxZoom: 19
-        }).addTo(mapInstance);
+
+        if (token && !token.includes('ใส่_MAPBOX')) {
+          // ใช้ Mapbox Dark-v11 แท้ คมกริบ
+          L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=${token}`, {
+            attribution: '© Mapbox © OpenStreetMap',
+            tileSize: 512,
+            zoomOffset: -1,
+            maxZoom: 19
+          }).addTo(mapInstance);
+        } else {
+          // Fallback ถ้ายังไม่ได้ใส่ Token ให้ใช้ OSM ไปก่อน
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+          }).addTo(mapInstance);
+        }
+
         markersLayer = L.layerGroup().addTo(mapInstance);
       }
       setTimeout(() => {
@@ -614,7 +631,6 @@
       updateMapMarkers();
     }
 
-    // ปักหมุดเฉพาะจุดที่มีพิกัดจริงเท่านั้น (ไม่สุ่มมั่ว 100%)
     function updateMapMarkers() {
       if (!markersLayer || !mapInstance) return;
       markersLayer.clearLayers();
@@ -629,7 +645,6 @@
       placesToMap.forEach((p) => {
         let coord = null;
 
-        // 1. ตรวจสอบจากลิสต์ Landmark
         const found = landmarkDatabase.find(lm => 
           lm.name.toLowerCase().includes(p.placeName.toLowerCase()) || 
           (p.chineseName && lm.cn.includes(p.chineseName))
@@ -638,12 +653,10 @@
           coord = found.coords;
         }
 
-        // 2. ถ้าไม่มีในลิสต์ ให้แกะพิกัดจริงจากลิงก์ Google Maps
         if (!coord && p.mapUrl) {
           coord = extractCoordsFromUrl(p.mapUrl);
         }
 
-        // ถ้าไม่มีพิกัดจริง ข้ามไปเลย ไม่ปักหมุดมั่ว
         if (!coord) return;
 
         bounds.push(coord);
@@ -824,13 +837,16 @@
 
     function openConfigModal() {
       document.getElementById('scriptUrlInput').value = getApiUrl();
+      document.getElementById('mapboxTokenInput').value = localStorage.getItem('shanghai_mapbox_token') || '';
       document.getElementById('configModal').style.display = 'flex';
     }
 
     function saveConfig() {
       localStorage.setItem('shanghai_script_url', document.getElementById('scriptUrlInput').value.trim());
+      const mbToken = document.getElementById('mapboxTokenInput').value.trim();
+      if (mbToken) localStorage.setItem('shanghai_mapbox_token', mbToken);
       closeModal('configModal');
-      loadPlaces();
+      location.reload();
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
