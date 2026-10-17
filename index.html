@@ -207,6 +207,8 @@
     .autofill-hint {
       font-size: 0.72rem; color: var(--primary); margin-top: 2px; display: block;
     }
+
+    /* CSS Dark Mode Filter สำหรับ Leaflet Map (ไม่ต้องใช้ API Key) */
     .leaflet-tile {
       filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) !important;
     }
@@ -413,7 +415,7 @@
     let currentDayFilter = 'All';
     let currentCatFilter = 'All';
     let currentMapDayFilter = 'All';
-    let  = null;
+    let mapInstance = null;
     let markersLayer = null;
 
     // Palette สีหมุดประจำแต่ละวัน
@@ -505,6 +507,7 @@
 
       if (viewName === 'map') {
         initMap();
+        updateMapMarkers();
       }
     }
 
@@ -611,8 +614,8 @@
       if (!mapInstance) {
         mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
-        maxZoom: 19
+          attribution: '© OpenStreetMap',
+          maxZoom: 19
         }).addTo(mapInstance);
         markersLayer = L.layerGroup().addTo(mapInstance);
       }
@@ -648,7 +651,6 @@
         let coord = found ? found.coords : [31.2304 + (Math.sin(idx) * 0.02), 121.4737 + (Math.cos(idx) * 0.02)];
         bounds.push(coord);
 
-        // กำหนดสีหมุดตามวันที่กำหนด
         const pinColor = dayColors[p.day] || '#38BDF8';
         const dayLabel = (p.day === 'Wishlist') ? '📌' : (p.day || 'D1').replace('Day ', 'D');
 
@@ -672,7 +674,6 @@
         `);
       });
 
-      // ซูมจัดตำแหน่งแผนที่ให้อยู่ในระยะมองเห็นของกลุ่มหมุด
       if (bounds.length > 0) {
         mapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
       }
