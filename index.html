@@ -207,6 +207,12 @@
     .autofill-hint {
       font-size: 0.72rem; color: var(--primary); margin-top: 2px; display: block;
     }
+    .leaflet-tile {
+      filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) !important;
+    }
+    .leaflet-container {
+      background: #090a0f !important;
+    }
   </style>
 </head>
 <body>
@@ -407,7 +413,7 @@
     let currentDayFilter = 'All';
     let currentCatFilter = 'All';
     let currentMapDayFilter = 'All';
-    let mapInstance = null;
+    let  = null;
     let markersLayer = null;
 
     // Palette สีหมุดประจำแต่ละวัน
@@ -604,10 +610,8 @@
     function initMap() {
       if (!mapInstance) {
         mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
-        // ของใหม่ (CartoDB Dark Matter - โมเดิร์น คลีนตา ไม่ลอย):
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap © CARTO',
-        subdomains: 'abcd',
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
         maxZoom: 19
         }).addTo(mapInstance);
         markersLayer = L.layerGroup().addTo(mapInstance);
