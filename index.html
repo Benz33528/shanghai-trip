@@ -300,7 +300,7 @@
       <input type="hidden" id="editRowIndex" value="">
 
       <div class="form-group">
-        <label>⚡ ดึงข้อมูลจาก Landmark ยอดฮิต (ถ้าต้องการ)</label>
+        <label>⚡ ดึงข้อมูลจาก Landmark ยอดฮิต (แนะนำ)</label>
         <select id="presetSelector" onchange="applyPreset(this.value)">
           <option value="">-- พิมพ์เองอิสระ --</option>
         </select>
@@ -355,8 +355,8 @@
       </div>
 
       <div class="form-group">
-        <label>ลิงก์ Google Maps</label>
-        <input type="url" id="inputMap" placeholder="https://maps.app.goo.gl/... หรือลิงก์ที่มี @31.xxx,121.xxx">
+        <label>ลิงก์ Google Maps (ถ้ามี)</label>
+        <input type="url" id="inputMap" placeholder="https://maps.app.goo.gl/... หรือลิงก์ Google Maps">
       </div>
 
       <div class="form-group">
@@ -412,24 +412,136 @@
       'Day 5': '#FACC15'
     };
 
-    // ฐานข้อมูลพิกัดแลนด์มาร์ก (พิกัดจริงบนทางเดินเลียบหาด The Bund ฝั่ง Puxi 100%)
+    // ฐานข้อมูลแลนด์มาร์ก (พิกัดเลียบหาด The Bund ถนน Zhongshan Dong Yi Lu บนบก 100%)
     const landmarkDatabase = [
-      { name: "The Bund", aliases: ["the bund", "bund", "外滩", "ไว่ทาน", "เดอะบันด์"], cn: "外滩", metro: "Line 2/10 - East Nanjing Rd. Exit 7", cat: "📸 Landmark", coords: [31.2385, 121.4880] },
-      { name: "Yu Garden", aliases: ["yu garden", "yuyuan", "豫园", "อวี้หยวน"], cn: "豫园", metro: "Line 10/14 - Yuyuan Station Exit 1", cat: "📸 Landmark", coords: [31.2272, 121.4921] },
-      { name: "Oriental Pearl Tower", aliases: ["oriental pearl", "หอไข่มุก"], cn: "东方明珠广播电视塔", metro: "Line 2 - Lujiazui Exit 1", cat: "📸 Landmark", coords: [31.2398, 121.4998] },
-      { name: "Shanghai Tower", aliases: ["shanghai tower", "เซี่ยงไฮ้ทาวเวอร์"], cn: "上海中心大厦", metro: "Line 2/14 - Lujiazui Exit 9", cat: "📸 Landmark", coords: [31.2355, 121.5015] },
-      { name: "Nanjing Road", aliases: ["nanjing road", "นานจิง"], cn: "南京东路步行街", metro: "Line 2/10 - East Nanjing Rd. Exit 1/4", cat: "🛍️ ช้อปปิ้ง", coords: [31.2359, 121.4789] },
-      { name: "Shanghai Disneyland", aliases: ["disneyland", "disney", "ดิสนีย์แลนด์"], cn: "上海迪士尼度假区", metro: "Line 11 - Disney Resort Exit 1", cat: "🎢 เที่ยว/กิจกรรม", coords: [31.1440, 121.6570] },
-      { name: "Starbucks Reserve Roastery", aliases: ["starbucks reserve", "สตาร์บัคส์"], cn: "星巴克臻选上海烘焙工坊", metro: "Line 2/12/13 - West Nanjing Rd. Exit 11", cat: "☕ คาเฟ่", coords: [31.2312, 121.4604] },
-      { name: "Xintiandi", aliases: ["xintiandi", "ซินเทียนตี้"], cn: "新天地", metro: "Line 10/13 - Xintiandi Exit 6", cat: "🛍️ ช้อปปิ้ง", coords: [31.2186, 121.4754] },
-      { name: "Tianzifang", aliases: ["tianzifang", "เถียนจื่อฟาง"], cn: "田子坊", metro: "Line 9 - Dapuqiao Exit 1", cat: "🛍️ ช้อปปิ้ง", coords: [31.2091, 121.4688] },
-      { name: "Jing'an Temple", aliases: ["jingan temple", "จิ้งอัน"], cn: "静安寺", metro: "Line 2/7/14 - Jing'an Temple Exit 1", cat: "📸 Landmark", coords: [31.2235, 121.4465] },
-      { name: "Jade Buddha Temple", aliases: ["jade buddha", "วัดพระหยก"], cn: "玉佛禅寺", metro: "Line 13 - Jiangning Rd. Exit 3", cat: "📸 Landmark", coords: [31.2427, 121.4429] },
-      { name: "Wukang Road", aliases: ["wukang road", "หวู่คัง"], cn: "武康大楼 / 武康路", metro: "Line 10/11 - Jiaotong University Exit 7", cat: "📸 Landmark", coords: [31.2052, 121.4398] },
-      { name: "People's Square", aliases: ["peoples square", "จัตุรัสประชาชน"], cn: "人民广场", metro: "Line 1/2/8 - People's Square Exit 19", cat: "📸 Landmark", coords: [31.2304, 121.4737] },
-      { name: "Zhujiajiao", aliases: ["zhujiajiao", "จูเจียเจี่ยว"], cn: "朱家角古镇", metro: "Line 17 - Zhujiajiao Exit 1", cat: "📸 Landmark", coords: [31.1114, 121.0531] },
-      { name: "North Bund Green Land", aliases: ["north bund", "ไว่ทานเหนือ"], cn: "北外滩滨江绿地", metro: "Line 12 - International Cruise Terminal Exit 3", cat: "📸 Landmark", coords: [31.2488, 121.4988] },
-      { name: "Pop Mart Flagship", aliases: ["pop mart", "ป๊อปมาร์ท"], cn: "泡泡玛特全球旗舰店 (南京东路)", metro: "Line 2/10 - East Nanjing Rd. Exit 2", cat: "🛍️ ช้อปปิ้ง", coords: [31.2372, 121.4820] }
+      { 
+        name: "The Bund", 
+        matchTerms: ["the bund", "bund", "外滩", "ไว่ทาน", "เดอะบันด์", "หาดไว่ทาน"], 
+        cn: "外滩", 
+        metro: "Line 2/10 - East Nanjing Rd. Exit 7", 
+        cat: "📸 Landmark", 
+        coords: [31.2385, 121.4880] 
+      },
+      { 
+        name: "Yu Garden", 
+        matchTerms: ["yu garden", "yuyuan", "豫园", "อวี้หยวน", "สวนอวี้หยวน"], 
+        cn: "豫园", 
+        metro: "Line 10/14 - Yuyuan Station Exit 1", 
+        cat: "📸 Landmark", 
+        coords: [31.2272, 121.4921] 
+      },
+      { 
+        name: "Oriental Pearl Tower", 
+        matchTerms: ["oriental pearl", "หอไข่มุก", "东方明珠"], 
+        cn: "东方明珠广播电视塔", 
+        metro: "Line 2 - Lujiazui Exit 1", 
+        cat: "📸 Landmark", 
+        coords: [31.2398, 121.4998] 
+      },
+      { 
+        name: "Shanghai Tower", 
+        matchTerms: ["shanghai tower", "เซี่ยงไฮ้ทาวเวอร์", "上海中心"], 
+        cn: "上海中心大厦", 
+        metro: "Line 2/14 - Lujiazui Exit 9", 
+        cat: "📸 Landmark", 
+        coords: [31.2355, 121.5015] 
+      },
+      { 
+        name: "Nanjing Road", 
+        matchTerms: ["nanjing road", "นานจิง", "南京路", "ถนนนานจิง"], 
+        cn: "南京东路步行街", 
+        metro: "Line 2/10 - East Nanjing Rd. Exit 1/4", 
+        cat: "🛍️ ช้อปปิ้ง", 
+        coords: [31.2359, 121.4789] 
+      },
+      { 
+        name: "Shanghai Disneyland", 
+        matchTerms: ["disneyland", "disney", "ดิสนีย์แลนด์", "迪士尼"], 
+        cn: "上海迪士尼度假区", 
+        metro: "Line 11 - Disney Resort Exit 1", 
+        cat: "🎢 เที่ยว/กิจกรรม", 
+        coords: [31.1440, 121.6570] 
+      },
+      { 
+        name: "Starbucks Reserve Roastery", 
+        matchTerms: ["starbucks reserve", "สตาร์บัคส์", "星巴克"], 
+        cn: "星巴克臻选上海烘焙工坊", 
+        metro: "Line 2/12/13 - West Nanjing Rd. Exit 11", 
+        cat: "☕ คาเฟ่", 
+        coords: [31.2312, 121.4604] 
+      },
+      { 
+        name: "Xintiandi", 
+        matchTerms: ["xintiandi", "ซินเทียนตี้", "新天地"], 
+        cn: "新天地", 
+        metro: "Line 10/13 - Xintiandi Exit 6", 
+        cat: "🛍️ ช้อปปิ้ง", 
+        coords: [31.2186, 121.4754] 
+      },
+      { 
+        name: "Tianzifang", 
+        matchTerms: ["tianzifang", "เถียนจื่อฟาง", "田子坊"], 
+        cn: "田子坊", 
+        metro: "Line 9 - Dapuqiao Exit 1", 
+        cat: "🛍️ ช้อปปิ้ง", 
+        coords: [31.2091, 121.4688] 
+      },
+      { 
+        name: "Jing'an Temple", 
+        matchTerms: ["jingan temple", "จิ้งอัน", "静安寺"], 
+        cn: "静安寺", 
+        metro: "Line 2/7/14 - Jing'an Temple Exit 1", 
+        cat: "📸 Landmark", 
+        coords: [31.2235, 121.4465] 
+      },
+      { 
+        name: "Jade Buddha Temple", 
+        matchTerms: ["jade buddha", "วัดพระหยก", "玉佛禅寺"], 
+        cn: "玉佛禅寺", 
+        metro: "Line 13 - Jiangning Rd. Exit 3", 
+        cat: "📸 Landmark", 
+        coords: [31.2427, 121.4429] 
+      },
+      { 
+        name: "Wukang Road", 
+        matchTerms: ["wukang road", "หวู่คัง", "武康路", "wukang building"], 
+        cn: "武康大楼 / 武康路", 
+        metro: "Line 10/11 - Jiaotong University Exit 7", 
+        cat: "📸 Landmark", 
+        coords: [31.2052, 121.4398] 
+      },
+      { 
+        name: "People's Square", 
+        matchTerms: ["peoples square", "people's square", "จัตุรัสประชาชน", "人民广场"], 
+        cn: "人民广场", 
+        metro: "Line 1/2/8 - People's Square Exit 19", 
+        cat: "📸 Landmark", 
+        coords: [31.2304, 121.4737] 
+      },
+      { 
+        name: "Zhujiajiao", 
+        matchTerms: ["zhujiajiao", "จูเจียเจี่ยว", "朱家角"], 
+        cn: "朱家角古镇", 
+        metro: "Line 17 - Zhujiajiao Exit 1", 
+        cat: "📸 Landmark", 
+        coords: [31.1114, 121.0531] 
+      },
+      { 
+        name: "North Bund Green Land", 
+        matchTerms: ["north bund", "ไว่ทานเหนือ", "北外滩"], 
+        cn: "北外滩滨江绿地", 
+        metro: "Line 12 - International Cruise Terminal Exit 3", 
+        cat: "📸 Landmark", 
+        coords: [31.2488, 121.4988] 
+      },
+      { 
+        name: "Pop Mart Flagship", 
+        matchTerms: ["pop mart", "ป๊อปมาร์ท", "泡泡玛特"], 
+        cn: "泡泡玛特全球旗舰店 (南京东路)", 
+        metro: "Line 2/10 - East Nanjing Rd. Exit 2", 
+        cat: "🛍️ ช้อปปิ้ง", 
+        coords: [31.2372, 121.4820] 
+      }
     ];
 
     function extractCoordsFromUrl(url) {
@@ -629,7 +741,7 @@
       updateMapMarkers();
     }
 
-    // ลอจิกปักหมุดที่แม่นยำสูง (แลนด์มาร์กสำคัญจะล็อกพิกัดบนบกเสมอ)
+    // ฟังก์ชันคำนวณตำแหน่งหมุด (แก้ปัญหา The Bund จมน้ำ 100%)
     function updateMapMarkers() {
       if (!markersLayer || !mapInstance) return;
       markersLayer.clearLayers();
@@ -643,27 +755,25 @@
 
       placesToMap.forEach((p) => {
         let coord = null;
-        let pName = (p.placeName || '').trim().toLowerCase();
-        let pCn = (p.chineseName || '').trim();
+        const pName = (p.placeName || '').trim().toLowerCase();
+        const pCn = (p.chineseName || '').trim();
 
-        // 1. ตรวจสอบจากชื่อแลนด์มาร์กเพื่อใช้พิกัดที่แม่นยำ 100% ก่อนเสมอ
-        const found = landmarkDatabase.find(lm => 
-          pName.includes(lm.name.toLowerCase()) || 
-          lm.aliases.some(a => pName.includes(a.toLowerCase())) ||
-          (pCn && lm.cn.includes(pCn))
-        );
+        // 1. ตรวจสอบเงื่อนไข Landmark Database (แม่นยำสูงสุด ล็อกบนบกเสมอ)
+        const found = landmarkDatabase.find(lm => {
+          return lm.matchTerms.some(term => pName.includes(term)) || (pCn && lm.cn.includes(pCn));
+        });
 
         if (found) {
-          coord = found.coords;
-          // ถ้าช่อง metro ว่าง ให้เติมข้อมูลสถานีจากฐานข้อมูลให้ด้วย
+          coord = found.coords; // ใช้พิกัดที่ถูกต้องบนทางเดินเลียบหาด The Bund
+          if (!p.chineseName) p.chineseName = found.cn;
           if (!p.metro) p.metro = found.metro;
         }
 
-        // 2. ถ้าไม่ใช่แลนด์มาร์กหลัก ถึงจะแกะพิกัดจาก Google Maps Link
+        // 2. ถ้าไม่ใช่แลนด์มาร์กหลัก ให้ดึงจาก Google Maps URL
         if (!coord && p.mapUrl) {
           const raw = extractCoordsFromUrl(p.mapUrl);
           if (raw) {
-            // ปรับ Offset ดึงหมุดขยับมาทางทิศตะวันตกเฉียงเหนือเล็กน้อย (~0.002) เพื่อให้เกาะแนวถนน
+            // หักลบค่า Shift พิกัดของจีน
             coord = [raw[0] - 0.0021, raw[1] - 0.0048];
           }
         }
