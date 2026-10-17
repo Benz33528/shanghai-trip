@@ -637,7 +637,7 @@
         const token = getMapboxToken();
         mapInstance = L.map('mapContainer').setView([31.2304, 121.4737], 13);
 
-        if (token && !token.includes('pk.eyJ1IjoiYmVuejMzNTI4IiwiYSI6ImNtdmNjbWVwOTA2ZnIyeHB0Z3czbnQ3bXYifQ.TFTDgJagz0YVXIeVUvlbXg')) {
+        if (token && !token.includes('ใส่_MAPBOX')) {
           L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=${token}`, {
             attribution: '© Mapbox © OpenStreetMap',
             tileSize: 512,
