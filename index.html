@@ -538,12 +538,35 @@
     ];
 
     function extractCoordsFromUrl(url) {
-      if (!url) return null;
-      const match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (match) {
-        return [parseFloat(match[1]), parseFloat(match[2])];
-      }
-      return null;
+  if (!url) return null;
+  url = url.trim();
+
+  // 1. ตรวจสอบกรณีพิมพ์/แปะตัวเลขพิกัดตรงๆ เช่น "31.2314, 121.4881" หรือ "121.4881, 31.2314"
+  const rawPairMatch = url.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
+  if (rawPairMatch) {
+    let p1 = parseFloat(rawPairMatch[1]);
+    let p2 = parseFloat(rawPairMatch[2]);
+    // ถ้าตัวแรกเป็น 121 (ลองจิจูดของเซี่ยงไฮ้) ให้สลับเอา Lat (31.xx) ขึ้นก่อน
+    if (p1 > 100 && p2 < 50) return [p2, p1];
+    return [p1, p2];
+  }
+
+  // 2. ตรวจสอบกรณีเป็นลิงก์จาก Amap (มีคำว่า center= หรือ location= หรือ wgs=)
+  const amapMatch = url.match(/[?&](?:center|location)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (amapMatch) {
+    let lng = parseFloat(amapMatch[1]);
+    let lat = parseFloat(amapMatch[2]);
+    return [lat, lng]; // Leaflet ใช้ [lat, lng]
+  }
+
+  // 3. ตรวจสอบลิงก์ Google Maps แบบยาว (@lat,lng หรือ q=lat,lng)
+  const gmapMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (gmapMatch) {
+    return [parseFloat(gmapMatch[1]), parseFloat(gmapMatch[2])];
+  }
+
+  return null;
+}
     }
 
     function populatePresets() {
