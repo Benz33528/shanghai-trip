@@ -300,7 +300,7 @@
       <input type="hidden" id="editRowIndex" value="">
 
       <div class="form-group">
-        <label>⚡ ดึงข้อมูลจาก Landmark ยอดฮิต (แนะนำ)</label>
+        <label>⚡ ดึงข้อมูลจาก Landmark ยอดฮิต (ถ้าต้องการ)</label>
         <select id="presetSelector" onchange="applyPreset(this.value)">
           <option value="">-- พิมพ์เองอิสระ --</option>
         </select>
@@ -355,8 +355,8 @@
       </div>
 
       <div class="form-group">
-        <label>ลิงก์ Google Maps (ถ้ามี)</label>
-        <input type="url" id="inputMap" placeholder="https://maps.app.goo.gl/... หรือลิงก์ Google Maps">
+        <label>พิกัด หรือ ลิงก์แผนที่ (Amap / Google Maps / ตัวเลข Lat,Lng)</label>
+        <input type="text" id="inputMap" placeholder="วางลิงก์ Amap, ลิงก์ Google หรือเลขพิกัด เช่น 31.23, 121.49">
       </div>
 
       <div class="form-group">
@@ -405,7 +405,7 @@
       'Day 5': '#FACC15'
     };
 
-    // ฐานข้อมูลพิกัดจีนทางการ (GCJ-02 พิกัดตรงกับ Amap 100%)
+    // ฐานข้อมูลพิกัดจีนทางการ (GCJ-02 ตรงกับแผ่นแผนที่ Amap 100%)
     const landmarkDatabase = [
       { 
         name: "The Bund", 
@@ -413,7 +413,7 @@
         cn: "外滩", 
         metro: "Line 2/10 - East Nanjing Rd. Exit 7", 
         cat: "📸 Landmark", 
-        coords: [31.2383, 121.4905] // พิกัด Amap ตรงแนวทางเดินเลียบหาด The Bund
+        coords: [31.2383, 121.4905] 
       },
       { 
         name: "Yu Garden", 
@@ -537,37 +537,36 @@
       }
     ];
 
+    // ฟังก์ชันอัจฉริยะ: รองรับเลขพิกัดดิบ, ลิงก์ Amap, และลิงก์ Google Maps
     function extractCoordsFromUrl(url) {
-  if (!url) return null;
-  url = url.trim();
+      if (!url) return null;
+      url = url.trim();
 
-  // 1. ตรวจสอบกรณีพิมพ์/แปะตัวเลขพิกัดตรงๆ เช่น "31.2314, 121.4881" หรือ "121.4881, 31.2314"
-  const rawPairMatch = url.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
-  if (rawPairMatch) {
-    let p1 = parseFloat(rawPairMatch[1]);
-    let p2 = parseFloat(rawPairMatch[2]);
-    // ถ้าตัวแรกเป็น 121 (ลองจิจูดของเซี่ยงไฮ้) ให้สลับเอา Lat (31.xx) ขึ้นก่อน
-    if (p1 > 100 && p2 < 50) return [p2, p1];
-    return [p1, p2];
-  }
+      // 1. รองรับการแปะตัวเลขตรงๆ เช่น "31.2314, 121.4881" หรือ "121.4881, 31.2314"
+      const rawPairMatch = url.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
+      if (rawPairMatch) {
+        let p1 = parseFloat(rawPairMatch[1]);
+        let p2 = parseFloat(rawPairMatch[2]);
+        if (p1 > 100 && p2 < 50) return [p2, p1]; // สลับถ้าผู้ใช้ก๊อปปี้แบบ [Lng, Lat] มา
+        return [p1, p2];
+      }
 
-  // 2. ตรวจสอบกรณีเป็นลิงก์จาก Amap (มีคำว่า center= หรือ location= หรือ wgs=)
-  const amapMatch = url.match(/[?&](?:center|location)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (amapMatch) {
-    let lng = parseFloat(amapMatch[1]);
-    let lat = parseFloat(amapMatch[2]);
-    return [lat, lng]; // Leaflet ใช้ [lat, lng]
-  }
+      // 2. รองรับลิงก์จากเว็บ Amap
+      const amapMatch = url.match(/[?&](?:center|location)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (amapMatch) {
+        let lng = parseFloat(amapMatch[1]);
+        let lat = parseFloat(amapMatch[2]);
+        return [lat, lng];
+      }
 
-  // 3. ตรวจสอบลิงก์ Google Maps แบบยาว (@lat,lng หรือ q=lat,lng)
-  const gmapMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (gmapMatch) {
-    return [parseFloat(gmapMatch[1]), parseFloat(gmapMatch[2])];
-  }
+      // 3. รองรับลิงก์ Google Maps แบบยาว (@lat,lng หรือ q=lat,lng)
+      const gmapMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (gmapMatch) {
+        return [parseFloat(gmapMatch[1]), parseFloat(gmapMatch[2])];
+      }
 
-  return null;
-}
-    
+      return null;
+    }
 
     function populatePresets() {
       const select = document.getElementById('presetSelector');
@@ -719,12 +718,11 @@
       });
     }
 
-    // แผนที่ดึงตรงจาก Amap Tiles Server (ไม่มีปัญหาพิกัดเยื้อง หมุดตรงเป๊ะ 100%)
+    // แผนที่ดึงตรงจาก Amap Tiles Server (ไม่มีปัญหาพิกัดเยื้อง)
     function initMap() {
       if (!mapInstance) {
         mapInstance = L.map('mapContainer').setView([31.2383, 121.4905], 13);
 
-        // Amap Vector Web Tile (Auto GCJ-02)
         L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
           subdomains: ['1', '2', '3', '4'],
           attribution: '© AutoNavi (高德地图)',
@@ -763,7 +761,7 @@
         const pName = (p.placeName || '').trim().toLowerCase();
         const pCn = (p.chineseName || '').trim();
 
-        // 1. ตรวจสอบเงื่อนไข Landmark Database ก่อนเสมอ
+        // 1. ตรวจสอบเงื่อนไขจาก Landmark Database ก่อน
         const found = landmarkDatabase.find(lm => {
           return lm.matchTerms.some(term => pName.includes(term)) || (pCn && lm.cn.includes(pCn));
         });
@@ -774,7 +772,7 @@
           if (!p.metro) p.metro = found.metro;
         }
 
-        // 2. ถ้าไม่ใช่แลนด์มาร์ก ให้ดึงพิกัดจาก Google Maps Link
+        // 2. ถ้าไม่ใช่แลนด์มาร์ก ให้ดึงจากช่อง mapUrl (พิกัดตัวเลข / ลิงก์ Amap / ลิงก์ Google)
         if (!coord && p.mapUrl) {
           coord = extractCoordsFromUrl(p.mapUrl);
         }
