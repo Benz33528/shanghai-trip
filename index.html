@@ -405,178 +405,66 @@
       'Day 5': '#FACC15'
     };
 
-    // ฐานข้อมูลพิกัดจีนทางการ (GCJ-02 ตรงกับแผ่นแผนที่ Amap 100%)
     const landmarkDatabase = [
-      { 
-        name: "The Bund", 
-        matchTerms: ["the bund", "bund", "外滩", "ไว่ทาน", "เดอะบันด์", "หาดไว่ทาน"], 
-        cn: "外滩", 
-        metro: "Line 2/10 - East Nanjing Rd. Exit 7", 
-        cat: "📸 Landmark", 
-        coords: [31.2383, 121.4905] 
-      },
-      { 
-        name: "Yu Garden", 
-        matchTerms: ["yu garden", "yuyuan", "豫园", "อวี้หยวน", "สวนอวี้หยวน"], 
-        cn: "豫园", 
-        metro: "Line 10/14 - Yuyuan Station Exit 1", 
-        cat: "📸 Landmark", 
-        coords: [31.2268, 121.4925] 
-      },
-      { 
-        name: "Oriental Pearl Tower", 
-        matchTerms: ["oriental pearl", "หอไข่มุก", "东方明珠"], 
-        cn: "东方明珠广播电视塔", 
-        metro: "Line 2 - Lujiazui Exit 1", 
-        cat: "📸 Landmark", 
-        coords: [31.2397, 121.4998] 
-      },
-      { 
-        name: "Shanghai Tower", 
-        matchTerms: ["shanghai tower", "เซี่ยงไฮ้ทาวเวอร์", "上海中心"], 
-        cn: "上海中心大厦", 
-        metro: "Line 2/14 - Lujiazui Exit 9", 
-        cat: "📸 Landmark", 
-        coords: [31.2355, 121.5015] 
-      },
-      { 
-        name: "Nanjing Road", 
-        matchTerms: ["nanjing road", "นานจิง", "南京路", "ถนนนานจิง"], 
-        cn: "南京东路步行街", 
-        metro: "Line 2/10 - East Nanjing Rd. Exit 1/4", 
-        cat: "🛍️ ช้อปปิ้ง", 
-        coords: [31.2359, 121.4789] 
-      },
-      { 
-        name: "Shanghai Disneyland", 
-        matchTerms: ["disneyland", "disney", "ดิสนีย์แลนด์", "迪士尼"], 
-        cn: "上海迪士尼度假区", 
-        metro: "Line 11 - Disney Resort Exit 1", 
-        cat: "🎢 เที่ยว/กิจกรรม", 
-        coords: [31.1440, 121.6570] 
-      },
-      { 
-        name: "Starbucks Reserve Roastery", 
-        matchTerms: ["starbucks reserve", "สตาร์บัคส์", "星巴克"], 
-        cn: "星巴克臻选上海烘焙工坊", 
-        metro: "Line 2/12/13 - West Nanjing Rd. Exit 11", 
-        cat: "☕ คาเฟ่", 
-        coords: [31.2312, 121.4604] 
-      },
-      { 
-        name: "Xintiandi", 
-        matchTerms: ["xintiandi", "ซินเทียนตี้", "新天地"], 
-        cn: "新天地", 
-        metro: "Line 10/13 - Xintiandi Exit 6", 
-        cat: "🛍️ ช้อปปิ้ง", 
-        coords: [31.2186, 121.4754] 
-      },
-      { 
-        name: "Tianzifang", 
-        matchTerms: ["tianzifang", "เถียนจื่อฟาง", "田子坊"], 
-        cn: "田子坊", 
-        metro: "Line 9 - Dapuqiao Exit 1", 
-        cat: "🛍️ ช้อปปิ้ง", 
-        coords: [31.2091, 121.4688] 
-      },
-      { 
-        name: "Jing'an Temple", 
-        matchTerms: ["jingan temple", "จิ้งอัน", "静安寺"], 
-        cn: "静安寺", 
-        metro: "Line 2/7/14 - Jing'an Temple Exit 1", 
-        cat: "📸 Landmark", 
-        coords: [31.2235, 121.4465] 
-      },
-      { 
-        name: "Jade Buddha Temple", 
-        matchTerms: ["jade buddha", "วัดพระหยก", "玉佛禅寺"], 
-        cn: "玉佛禅寺", 
-        metro: "Line 13 - Jiangning Rd. Exit 3", 
-        cat: "📸 Landmark", 
-        coords: [31.2427, 121.4429] 
-      },
-      { 
-        name: "Wukang Road", 
-        matchTerms: ["wukang road", "หวู่คัง", "武康路", "wukang building"], 
-        cn: "武康大楼 / 武康路", 
-        metro: "Line 10/11 - Jiaotong University Exit 7", 
-        cat: "📸 Landmark", 
-        coords: [31.2052, 121.4398] 
-      },
-      { 
-        name: "People's Square", 
-        matchTerms: ["peoples square", "people's square", "จัตุรัสประชาชน", "人民广场"], 
-        cn: "人民广场", 
-        metro: "Line 1/2/8 - People's Square Exit 19", 
-        cat: "📸 Landmark", 
-        coords: [31.2304, 121.4737] 
-      },
-      { 
-        name: "Zhujiajiao", 
-        matchTerms: ["zhujiajiao", "จูเจียเจี่ยว", "朱家角"], 
-        cn: "朱家角古镇", 
-        metro: "Line 17 - Zhujiajiao Exit 1", 
-        cat: "📸 Landmark", 
-        coords: [31.1114, 121.0531] 
-      },
-      { 
-        name: "North Bund Green Land", 
-        matchTerms: ["north bund", "ไว่ทานเหนือ", "北外滩"], 
-        cn: "北外滩滨江绿地", 
-        metro: "Line 12 - International Cruise Terminal Exit 3", 
-        cat: "📸 Landmark", 
-        coords: [31.2488, 121.4988] 
-      },
-      { 
-        name: "Pop Mart Flagship", 
-        matchTerms: ["pop mart", "ป๊อปมาร์ท", "泡泡玛特"], 
-        cn: "泡泡玛特全球旗舰店 (南京东路)", 
-        metro: "Line 2/10 - East Nanjing Rd. Exit 2", 
-        cat: "🛍️ ช้อปปิ้ง", 
-        coords: [31.2372, 121.4820] 
-      }
+      { name: "The Bund", matchTerms: ["the bund", "bund", "外滩", "ไว่ทาน", "เดอะบันด์", "หาดไว่ทาน"], cn: "外滩", metro: "Line 2/10 - East Nanjing Rd. Exit 7", cat: "📸 Landmark", coords: [31.2383, 121.4905] },
+      { name: "Yu Garden", matchTerms: ["yu garden", "yuyuan", "豫园", "อวี้หยวน", "สวนอวี้หยวน"], cn: "豫园", metro: "Line 10/14 - Yuyuan Station Exit 1", cat: "📸 Landmark", coords: [31.2268, 121.4925] },
+      { name: "Oriental Pearl Tower", matchTerms: ["oriental pearl", "หอไข่มุก", "东方明珠"], cn: "东方明珠广播电视塔", metro: "Line 2 - Lujiazui Exit 1", cat: "📸 Landmark", coords: [31.2397, 121.4998] },
+      { name: "Shanghai Tower", matchTerms: ["shanghai tower", "เซี่ยงไฮ้ทาวเวอร์", "上海中心"], cn: "上海中心大厦", metro: "Line 2/14 - Lujiazui Exit 9", cat: "📸 Landmark", coords: [31.2355, 121.5015] },
+      { name: "Nanjing Road", matchTerms: ["nanjing road", "นานจิง", "南京路", "ถนนนานจิง"], cn: "南京东路步行街", metro: "Line 2/10 - East Nanjing Rd. Exit 1/4", cat: "🛍️ ช้อปปิ้ง", coords: [31.2359, 121.4789] },
+      { name: "Shanghai Disneyland", matchTerms: ["disneyland", "disney", "ดิสนีย์แลนด์", "迪士尼"], cn: "上海迪士尼度假区", metro: "Line 11 - Disney Resort Exit 1", cat: "🎢 เที่ยว/กิจกรรม", coords: [31.1440, 121.6570] },
+      { name: "Starbucks Reserve Roastery", matchTerms: ["starbucks reserve", "สตาร์บัคส์", "星巴克"], cn: "星巴克臻选上海烘焙工坊", metro: "Line 2/12/13 - West Nanjing Rd. Exit 11", cat: "☕ คาเฟ่", coords: [31.2312, 121.4604] },
+      { name: "Xintiandi", matchTerms: ["xintiandi", "ซินเทียนตี้", "新天地"], cn: "新天地", metro: "Line 10/13 - Xintiandi Exit 6", cat: "🛍️ ช้อปปิ้ง", coords: [31.2186, 121.4754] },
+      { name: "Tianzifang", matchTerms: ["tianzifang", "เถียนจื่อฟาง", "田子坊"], cn: "田子坊", metro: "Line 9 - Dapuqiao Exit 1", cat: "🛍️ ช้อปปิ้ง", coords: [31.2091, 121.4688] },
+      { name: "Jing'an Temple", matchTerms: ["jingan temple", "จิ้งอัน", "静安寺"], cn: "静安寺", metro: "Line 2/7/14 - Jing'an Temple Exit 1", cat: "📸 Landmark", coords: [31.2235, 121.4465] },
+      { name: "Jade Buddha Temple", matchTerms: ["jade buddha", "วัดพระหยก", "玉佛禅寺"], cn: "玉佛禅寺", metro: "Line 13 - Jiangning Rd. Exit 3", cat: "📸 Landmark", coords: [31.2427, 121.4429] },
+      { name: "Wukang Road", matchTerms: ["wukang road", "หวู่คัง", "武康路", "wukang building"], cn: "武康大楼 / 武康路", metro: "Line 10/11 - Jiaotong University Exit 7", cat: "📸 Landmark", coords: [31.2052, 121.4398] },
+      { name: "People's Square", matchTerms: ["peoples square", "people's square", "จัตุรัสประชาชน", "人民广场"], cn: "人民广场", metro: "Line 1/2/8 - People's Square Exit 19", cat: "📸 Landmark", coords: [31.2304, 121.4737] },
+      { name: "Zhujiajiao", matchTerms: ["zhujiajiao", "จูเจียเจี่ยว", "朱家角"], cn: "朱家角古镇", metro: "Line 17 - Zhujiajiao Exit 1", cat: "📸 Landmark", coords: [31.1114, 121.0531] },
+      { name: "North Bund Green Land", matchTerms: ["north bund", "ไว่ทานเหนือ", "北外滩"], cn: "北外滩滨江绿地", metro: "Line 12 - International Cruise Terminal Exit 3", cat: "📸 Landmark", coords: [31.2488, 121.4988] },
+      { name: "Pop Mart Flagship", matchTerms: ["pop mart", "ป๊อปมาร์ท", "泡泡玛特"], cn: "泡泡玛特全球旗舰店 (南京东路)", metro: "Line 2/10 - East Nanjing Rd. Exit 2", cat: "🛍️ ช้อปปิ้ง", coords: [31.2372, 121.4820] }
     ];
 
-    // ฟังก์ชันอัจฉริยะ: รองรับเลขพิกัดดิบ, ลิงก์ Amap, และลิงก์ Google Maps
     function extractCoordsFromUrl(url) {
       if (!url) return null;
-      url = url.trim();
+      try {
+        url = url.trim();
+        const rawPairMatch = url.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
+        if (rawPairMatch) {
+          let p1 = parseFloat(rawPairMatch[1]);
+          let p2 = parseFloat(rawPairMatch[2]);
+          if (p1 > 100 && p2 < 50) return [p2, p1];
+          return [p1, p2];
+        }
 
-      // 1. รองรับการแปะตัวเลขตรงๆ เช่น "31.2314, 121.4881" หรือ "121.4881, 31.2314"
-      const rawPairMatch = url.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
-      if (rawPairMatch) {
-        let p1 = parseFloat(rawPairMatch[1]);
-        let p2 = parseFloat(rawPairMatch[2]);
-        if (p1 > 100 && p2 < 50) return [p2, p1]; // สลับถ้าผู้ใช้ก๊อปปี้แบบ [Lng, Lat] มา
-        return [p1, p2];
+        const amapMatch = url.match(/[?&](?:center|location)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (amapMatch) {
+          let lng = parseFloat(amapMatch[1]);
+          let lat = parseFloat(amapMatch[2]);
+          return [lat, lng];
+        }
+
+        const gmapMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (gmapMatch) {
+          return [parseFloat(gmapMatch[1]), parseFloat(gmapMatch[2])];
+        }
+      } catch (err) {
+        console.error("Coords parse error", err);
       }
-
-      // 2. รองรับลิงก์จากเว็บ Amap
-      const amapMatch = url.match(/[?&](?:center|location)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (amapMatch) {
-        let lng = parseFloat(amapMatch[1]);
-        let lat = parseFloat(amapMatch[2]);
-        return [lat, lng];
-      }
-
-      // 3. รองรับลิงก์ Google Maps แบบยาว (@lat,lng หรือ q=lat,lng)
-      const gmapMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (gmapMatch) {
-        return [parseFloat(gmapMatch[1]), parseFloat(gmapMatch[2])];
-      }
-
       return null;
     }
 
     function populatePresets() {
-      const select = document.getElementById('presetSelector');
-      select.innerHTML = '<option value="">-- พิมพ์เองอิสระ --</option>';
-      landmarkDatabase.forEach((item, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.innerText = item.name + (item.cn ? ` (${item.cn})` : '');
-        select.appendChild(option);
-      });
+      try {
+        const select = document.getElementById('presetSelector');
+        if (!select) return;
+        select.innerHTML = '<option value="">-- พิมพ์เองอิสระ --</option>';
+        landmarkDatabase.forEach((item, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.innerText = item.name + (item.cn ? ` (${item.cn})` : '');
+          select.appendChild(option);
+        });
+      } catch(e) { console.error(e); }
     }
 
     function applyPreset(index) {
@@ -608,11 +496,12 @@
     function switchView(viewName, btn) {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('view-' + viewName).classList.add('active');
+      if (btn) btn.classList.add('active');
+      const target = document.getElementById('view-' + viewName);
+      if (target) target.classList.add('active');
 
       const fab = document.getElementById('fabAdd');
-      fab.style.display = (viewName === 'itinerary' || viewName === 'map') ? 'flex' : 'none';
+      if (fab) fab.style.display = (viewName === 'itinerary' || viewName === 'map') ? 'flex' : 'none';
 
       if (viewName === 'map') {
         initMap();
@@ -624,7 +513,7 @@
       const url = getApiUrl();
       const listEl = document.getElementById('placesList');
 
-      if (!url || url.includes('ใส่_URL')) {
+      if (!url) {
         listEl.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-sub);">
           กรุณากดรูปเฟือง ⚙️ ด้านบน เพื่อใส่ <b>Google Apps Script URL</b> ครับ
         </div>`;
@@ -639,26 +528,27 @@
         renderPlaces();
         if (mapInstance) updateMapMarkers();
       } catch (err) {
-        listEl.innerHTML = `<div style="text-align:center; color:red; padding:40px 20px;">โหลดไม่สำเร็จ: ${err.message}</div>`;
+        listEl.innerHTML = `<div style="text-align:center; color:red; padding:40px 20px;">โหลดไม่สำเร็จ: ${err.message}<br><small style="color:var(--text-sub);">ลองเช็ก URL ในปุ่มเฟือง ⚙️ อีกครั้ง</small></div>`;
       }
     }
 
     function filterDay(day, btn) {
       currentDayFilter = day;
       document.querySelectorAll('#dayFilter .pill-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (btn) btn.classList.add('active');
       renderPlaces();
     }
 
     function filterCategory(cat, btn) {
       currentCatFilter = cat;
       document.querySelectorAll('#catFilter .pill-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (btn) btn.classList.add('active');
       renderPlaces();
     }
 
     function renderPlaces() {
       const listEl = document.getElementById('placesList');
+      if (!listEl) return;
       listEl.innerHTML = '';
 
       let filtered = allPlaces;
@@ -718,30 +608,34 @@
       });
     }
 
-    // แผนที่ดึงตรงจาก Amap Tiles Server (ไม่มีปัญหาพิกัดเยื้อง)
     function initMap() {
       if (!mapInstance) {
-        mapInstance = L.map('mapContainer').setView([31.2383, 121.4905], 13);
+        try {
+          mapInstance = L.map('mapContainer').setView([31.2383, 121.4905], 13);
+          L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+            subdomains: ['1', '2', '3', '4'],
+            attribution: '© AutoNavi (高德地图)',
+            maxZoom: 18,
+            minZoom: 4
+          }).addTo(mapInstance);
 
-        L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-          subdomains: ['1', '2', '3', '4'],
-          attribution: '© AutoNavi (高德地图)',
-          maxZoom: 18,
-          minZoom: 4
-        }).addTo(mapInstance);
-
-        markersLayer = L.layerGroup().addTo(mapInstance);
+          markersLayer = L.layerGroup().addTo(mapInstance);
+        } catch(e) {
+          console.error("Map init error", e);
+        }
       }
       setTimeout(() => {
-        mapInstance.invalidateSize();
-        updateMapMarkers();
+        if (mapInstance) {
+          mapInstance.invalidateSize();
+          updateMapMarkers();
+        }
       }, 200);
     }
 
     function filterMapDay(day, btn) {
       currentMapDayFilter = day;
       document.querySelectorAll('#mapDayFilter .pill-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (btn) btn.classList.add('active');
       updateMapMarkers();
     }
 
@@ -761,7 +655,6 @@
         const pName = (p.placeName || '').trim().toLowerCase();
         const pCn = (p.chineseName || '').trim();
 
-        // 1. ตรวจสอบเงื่อนไขจาก Landmark Database ก่อน
         const found = landmarkDatabase.find(lm => {
           return lm.matchTerms.some(term => pName.includes(term)) || (pCn && lm.cn.includes(pCn));
         });
@@ -772,7 +665,6 @@
           if (!p.metro) p.metro = found.metro;
         }
 
-        // 2. ถ้าไม่ใช่แลนด์มาร์ก ให้ดึงจากช่อง mapUrl (พิกัดตัวเลข / ลิงก์ Amap / ลิงก์ Google)
         if (!coord && p.mapUrl) {
           coord = extractCoordsFromUrl(p.mapUrl);
         }
@@ -831,6 +723,7 @@
 
     function renderPhrases() {
       const list = document.getElementById('phrasesList');
+      if (!list) return;
       list.innerHTML = '';
       survivalPhrases.forEach(item => {
         const div = document.createElement('div');
@@ -881,7 +774,7 @@
 
     async function savePlace() {
       const url = getApiUrl();
-      if (!url) return alert('กรุณาตั้งค่า Script URL ก่อนครับ');
+      if (!url) return alert('กรุณาตั้งค่า Script URL ในปุ่มเฟืองก่อนครับ');
 
       const name = document.getElementById('inputName').value.trim();
       if (!name) return alert('กรุณาระบุชื่อสถานที่');
@@ -930,7 +823,10 @@
       if (p) p.visited = newStatus;
       renderPlaces();
 
-      await fetch(getApiUrl(), {
+      const url = getApiUrl();
+      if (!url) return;
+
+      await fetch(url, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
@@ -940,7 +836,9 @@
 
     async function deletePlace(rowIndex, name) {
       if (!confirm(`ต้องการลบ "${name}" ใช่หรือไม่?`)) return;
-      await fetch(getApiUrl(), {
+      const url = getApiUrl();
+      if (!url) return;
+      await fetch(url, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
@@ -951,7 +849,9 @@
 
     function copyText(txt) {
       navigator.clipboard.writeText(txt).then(() => {
-        alert(`คัดลอก "${txt}" แล้ว! นำไปวางใน Didi / Amap ได้ทันที`);
+        alert(`คัดลอก "${txt}" แล้ว!`);
+      }).catch(() => {
+        prompt("ก๊อปปี้ข้อความนี้ได้เลย:", txt);
       });
     }
 
@@ -961,16 +861,23 @@
     }
 
     function saveConfig() {
-      localStorage.setItem('shanghai_script_url', document.getElementById('scriptUrlInput').value.trim());
+      const val = document.getElementById('scriptUrlInput').value.trim();
+      localStorage.setItem('shanghai_script_url', val);
       closeModal('configModal');
       location.reload();
     }
 
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function closeModal(id) { 
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none'; 
+    }
 
-    populatePresets();
-    loadPlaces();
-    renderPhrases();
+    // เรียกฟังก์ชันเมื่อโหลดเสร็จ
+    window.addEventListener('DOMContentLoaded', () => {
+      populatePresets();
+      loadPlaces();
+      renderPhrases();
+    });
   </script>
 </body>
 </html>
