@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <style>
     :root {
       --bg: #090A0F;
@@ -182,6 +182,7 @@
       position: fixed; bottom: 24px; right: 20px; background: var(--primary); color: #090A0F; border: none;
       padding: 14px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 600;
       box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25); cursor: pointer; z-index: 99;
+      display: flex; align-items: center; justify-content: center;
     }
 
     /* Modal Form */
@@ -346,17 +347,20 @@
 
       <div class="form-group">
         <label>ชื่อภาษาจีน (สำหรับ Didi / Amap)</label>
-        <input type="text" id="inputChinese" placeholder="เช่น 外滩, 豫园">
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="inputChinese" placeholder="เช่น 全季酒店(上海外滩金陵东路店)">
+          <button type="button" style="background:var(--primary); color:#090A0F; border:none; padding:0 10px; border-radius:8px; font-weight:600; font-size:0.75rem; white-space:nowrap;" onclick="searchCoordsByChinese()">🔍 ดึงพิกัด</button>
+        </div>
       </div>
 
       <div class="form-group">
         <label>สถานีรถไฟใต้ดิน (Metro Exit)</label>
-        <input type="text" id="inputMetro" placeholder="เช่น Line 2/10 - East Nanjing Rd. Exit 7">
+        <input type="text" id="inputMetro" placeholder="เช่น Line 14 - Yuyuan Station Exit 5">
       </div>
 
       <div class="form-group">
-        <label>พิกัด หรือ ลิงก์แผนที่ (Amap / Google Maps / ตัวเลข Lat,Lng)</label>
-        <input type="text" id="inputMap" placeholder="วางลิงก์ Amap, ลิงก์ Google หรือเลขพิกัด เช่น 31.23, 121.49">
+        <label>พิกัด หรือ ลิงก์แผนที่</label>
+        <input type="text" id="inputMap" placeholder="วางลิงก์ Amap, ลิงก์ Google หรือเลขพิกัด 31.xx, 121.xx">
       </div>
 
       <div class="form-group">
@@ -387,7 +391,7 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script>
     let allPlaces = [];
     let currentDayFilter = 'All';
@@ -424,10 +428,40 @@
       { name: "Pop Mart Flagship", matchTerms: ["pop mart", "ป๊อปมาร์ท", "泡泡玛特"], cn: "泡泡玛特全球旗舰店 (南京东路)", metro: "Line 2/10 - East Nanjing Rd. Exit 2", cat: "🛍️ ช้อปปิ้ง", coords: [31.2372, 121.4820] }
     ];
 
+    // ฟังก์ชันค้นหาพิกัดภาษาจีนอัตโนมัติ (จีนแท้ 100%)
+    async function searchCoordsByChinese() {
+      const cnName = document.getElementById('inputChinese').value.trim();
+      if (!cnName) return alert('กรุณากรอกชื่อภาษาจีนก่อนกดดึงพิกัดครับ');
+      
+      const btn = event.target;
+      const originalText = btn.innerText;
+      btn.innerText = '⏳ ค้นหา...';
+
+      try {
+        // ใช้ Amap Web Service Geocode ดึงพิกัดเมืองเซี่ยงไฮ้
+        const res = await fetch(`https://restapi.amap.com/v3/geocode/geo?key=8325164e247e15eea68b59e89200988b&address=${encodeURIComponent(cnName)}&city=上海`);
+        const data = await res.json();
+        if (data.status === '1' && data.geocodes && data.geocodes.length > 0) {
+          const loc = data.geocodes[0].location; // คืนค่า "lng,lat"
+          const parts = loc.split(',');
+          document.getElementById('inputMap').value = `${parts[1]}, ${parts[0]}`;
+          alert(`✅ พบพิกัดแล้ว: ${parts[1]}, ${parts[0]}`);
+        } else {
+          alert('ไม่พบพิกัดจากชื่อนี้ ลองตัดคำให้สั้นลง เช่น "全季酒店 河南南路"');
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการดึงพิกัด: ' + err.message);
+      } finally {
+        btn.innerText = originalText;
+      }
+    }
+
     function extractCoordsFromUrl(url) {
       if (!url) return null;
       try {
         url = url.trim();
+
+        // 1. ตรวจสอบพิกัดตัวเลขตรงๆ เช่น 31.2295, 121.4878
         const rawPairMatch = url.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
         if (rawPairMatch) {
           let p1 = parseFloat(rawPairMatch[1]);
@@ -436,6 +470,7 @@
           return [p1, p2];
         }
 
+        // 2. ดักกรณีวางลิงก์ Amap เว็บแบบมี center/location
         const amapMatch = url.match(/[?&](?:center|location)=(-?\d+\.\d+),(-?\d+\.\d+)/);
         if (amapMatch) {
           let lng = parseFloat(amapMatch[1]);
@@ -443,6 +478,7 @@
           return [lat, lng];
         }
 
+        // 3. ตรวจสอบลิงก์ Google Maps แบบยาว
         const gmapMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
         if (gmapMatch) {
           return [parseFloat(gmapMatch[1]), parseFloat(gmapMatch[2])];
@@ -461,10 +497,12 @@
         landmarkDatabase.forEach((item, index) => {
           const option = document.createElement('option');
           option.value = index;
-          option.innerText = item.name + (item.cn ? ` (${item.cn})` : '');
+          option.innerText = item.name + (item.cn ? ' (' + item.cn + ')' : '');
           select.appendChild(option);
         });
-      } catch(e) { console.error(e); }
+      } catch(e) {
+        console.error(e);
+      }
     }
 
     function applyPreset(index) {
@@ -475,6 +513,7 @@
         document.getElementById('inputChinese').value = lm.cn;
         document.getElementById('inputMetro').value = lm.metro;
         document.getElementById('inputCat').value = lm.cat;
+        document.getElementById('inputMap').value = `${lm.coords[0]}, ${lm.coords[1]}`;
       }
     }
 
@@ -514,13 +553,13 @@
       const listEl = document.getElementById('placesList');
 
       if (!url) {
-        listEl.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-sub);">
-          กรุณากดรูปเฟือง ⚙️ ด้านบน เพื่อใส่ <b>Google Apps Script URL</b> ครับ
-        </div>`;
+        listEl.innerHTML = '<div style="text-align:center; padding:40px 20px; color:var(--text-sub);">' +
+          'กรุณากดรูปเฟือง ⚙️ ด้านบน เพื่อใส่ <b>Google Apps Script URL</b> ครับ' +
+        '</div>';
         return;
       }
 
-      listEl.innerHTML = `<div style="text-align:center; padding:40px 0; color:var(--text-sub);">กำลังโหลดข้อมูล...</div>`;
+      listEl.innerHTML = '<div style="text-align:center; padding:40px 0; color:var(--text-sub);">กำลังโหลดข้อมูล...</div>';
 
       try {
         const res = await fetch(url);
@@ -528,7 +567,7 @@
         renderPlaces();
         if (mapInstance) updateMapMarkers();
       } catch (err) {
-        listEl.innerHTML = `<div style="text-align:center; color:red; padding:40px 20px;">โหลดไม่สำเร็จ: ${err.message}<br><small style="color:var(--text-sub);">ลองเช็ก URL ในปุ่มเฟือง ⚙️ อีกครั้ง</small></div>`;
+        listEl.innerHTML = '<div style="text-align:center; color:red; padding:40px 20px;">โหลดไม่สำเร็จ: ' + err.message + '</div>';
       }
     }
 
@@ -556,7 +595,7 @@
       if (currentCatFilter !== 'All') filtered = filtered.filter(p => (p.category || '📸 Landmark') === currentCatFilter);
 
       if (filtered.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:40px 0;">ไม่พบสถานที่ในหมวดนี้ กด + เพื่อเพิ่มได้เลย</div>`;
+        listEl.innerHTML = '<div style="text-align:center; color:var(--text-sub); padding:40px 0;">ไม่พบสถานที่ในหมวดนี้ กด + เพื่อเพิ่มได้เลย</div>';
         return;
       }
 
@@ -566,15 +605,15 @@
         if (inSlot.length > 0) {
           const heading = document.createElement('div');
           heading.style = 'margin: 14px 0 6px; font-size: 0.88rem; font-weight: 600; color: var(--text-sub);';
-          heading.innerText = `🕒 ${slot}`;
+          heading.innerText = '🕒 ' + slot;
           listEl.appendChild(heading);
 
           inSlot.forEach(place => {
             const card = document.createElement('div');
-            card.className = `place-card ${place.visited ? 'is-done' : ''}`;
+            card.className = 'place-card ' + (place.visited ? 'is-done' : '');
 
-            const gmapUrl = place.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.placeName + ' Shanghai')}`;
-            const amapUrl = `https://uri.amap.com/search?keyword=${encodeURIComponent((place.chineseName || place.placeName) + ' 上海')}`;
+            const gmapUrl = place.mapUrl || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(place.placeName + ' Shanghai'));
+            const amapUrl = 'https://uri.amap.com/search?keyword=' + encodeURIComponent((place.chineseName || place.placeName) + ' 上海');
 
             card.innerHTML = `
               <div class="place-header">
@@ -655,15 +694,14 @@
         const pName = (p.placeName || '').trim().toLowerCase();
         const pCn = (p.chineseName || '').trim();
 
-        // 1. สำคัญที่สุด: ถ้ามีลิงก์หรือพิกัดที่กรอกมาเอง (เช่น จาก Amap) ให้ใช้พิกัดนี้เป็นอันดับแรก!
+        // 1. ให้ความสำคัญสูงสุดกับพิกัดที่ระบุมาในช่อง mapUrl
         if (p.mapUrl) {
           coord = extractCoordsFromUrl(p.mapUrl);
         }
 
-        // 2. ถ้าไม่ได้ใส่ลิงก์พิกัดมา ถึงจะไปเทียบกับ Landmark Database
+        // 2. ถ้าไม่มี ให้ดึงจาก Landmark Database
         if (!coord) {
           const found = landmarkDatabase.find(lm => {
-            // เช็กชื่อให้ตรงเป๊ะ หรือชื่อสั้นๆ ไม่ใช่แค่คำว่า "bund" โผล่มาในชื่อโรงแรม
             return lm.matchTerms.some(term => pName === term.toLowerCase() || pName.startsWith(term.toLowerCase())) || 
                    (pCn && lm.cn === pCn);
           });
@@ -723,7 +761,7 @@
       if (!isNaN(thb)) {
         document.getElementById('cnyInput').value = (thb / rate).toFixed(2);
       } else {
-        document.getElementById('cnyInput').value = '';
+        document.getElementById('thbInput').value = '';
       }
     }
 
@@ -841,7 +879,7 @@
     }
 
     async function deletePlace(rowIndex, name) {
-      if (!confirm(`ต้องการลบ "${name}" ใช่หรือไม่?`)) return;
+      if (!confirm('ต้องการลบ "' + name + '" ใช่หรือไม่?')) return;
       const url = getApiUrl();
       if (!url) return;
       await fetch(url, {
@@ -855,7 +893,7 @@
 
     function copyText(txt) {
       navigator.clipboard.writeText(txt).then(() => {
-        alert(`คัดลอก "${txt}" แล้ว!`);
+        alert('คัดลอก "' + txt + '" แล้ว!');
       }).catch(() => {
         prompt("ก๊อปปี้ข้อความนี้ได้เลย:", txt);
       });
@@ -878,7 +916,6 @@
       if (el) el.style.display = 'none'; 
     }
 
-    // เรียกฟังก์ชันเมื่อโหลดเสร็จ
     window.addEventListener('DOMContentLoaded', () => {
       populatePresets();
       loadPlaces();
