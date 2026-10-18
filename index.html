@@ -655,18 +655,24 @@
         const pName = (p.placeName || '').trim().toLowerCase();
         const pCn = (p.chineseName || '').trim();
 
-        const found = landmarkDatabase.find(lm => {
-          return lm.matchTerms.some(term => pName.includes(term)) || (pCn && lm.cn.includes(pCn));
-        });
-
-        if (found) {
-          coord = found.coords;
-          if (!p.chineseName) p.chineseName = found.cn;
-          if (!p.metro) p.metro = found.metro;
+        // 1. สำคัญที่สุด: ถ้ามีลิงก์หรือพิกัดที่กรอกมาเอง (เช่น จาก Amap) ให้ใช้พิกัดนี้เป็นอันดับแรก!
+        if (p.mapUrl) {
+          coord = extractCoordsFromUrl(p.mapUrl);
         }
 
-        if (!coord && p.mapUrl) {
-          coord = extractCoordsFromUrl(p.mapUrl);
+        // 2. ถ้าไม่ได้ใส่ลิงก์พิกัดมา ถึงจะไปเทียบกับ Landmark Database
+        if (!coord) {
+          const found = landmarkDatabase.find(lm => {
+            // เช็กชื่อให้ตรงเป๊ะ หรือชื่อสั้นๆ ไม่ใช่แค่คำว่า "bund" โผล่มาในชื่อโรงแรม
+            return lm.matchTerms.some(term => pName === term.toLowerCase() || pName.startsWith(term.toLowerCase())) || 
+                   (pCn && lm.cn === pCn);
+          });
+
+          if (found) {
+            coord = found.coords;
+            if (!p.chineseName) p.chineseName = found.cn;
+            if (!p.metro) p.metro = found.metro;
+          }
         }
 
         if (!coord) return;
@@ -684,7 +690,7 @@
         });
 
         const marker = L.marker(coord, { icon: customIcon }).addTo(markersLayer);
-        const amapUrl = `https://uri.amap.com/search?keyword=${encodeURIComponent((p.chineseName || p.placeName) + ' 上海')}`;
+        const amapUrl = 'https://uri.amap.com/search?keyword=' + encodeURIComponent((p.chineseName || p.placeName) + ' 上海');
 
         marker.bindPopup(`
           <div style="font-family:'Prompt',sans-serif; min-width:140px; color:#1E293B;">
