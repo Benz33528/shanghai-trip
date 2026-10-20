@@ -158,6 +158,20 @@
     }
     .leaflet-container { background: #F3F4F6 !important; }
 
+    /* Banner แจ้งเตือนเมื่อกำลังเลือกจุดบนแผนที่ */
+    #pickBanner {
+      display: none;
+      background: #0284C7;
+      color: #FFFFFF;
+      text-align: center;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
     /* Calc & Phrases */
     .calc-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px;
@@ -254,6 +268,7 @@
 
   <!-- VIEW 2: INTERACTIVE MAP (AMAP DIRECT TILES) -->
   <div id="view-map" class="view-content" style="padding: 12px 16px;">
+    <div id="pickBanner">📍 แตะบนแผนที่ตรงตำแหน่งร้านเพื่อปักหมุด</div>
     <div class="filter-scroll" id="mapDayFilter" style="margin-bottom: 8px;">
       <button class="pill-btn active" onclick="filterMapDay('All', this)">หมุดทั้งหมด</button>
       <button class="pill-btn" onclick="filterMapDay('Wishlist', this)">📌 Wishlist</button>
@@ -301,7 +316,7 @@
       <input type="hidden" id="editRowIndex" value="">
 
       <div class="form-group">
-        <label>⚡ ดึงข้อมูลจาก Landmark ยอดฮิต (ถ้าต้องการ)</label>
+        <label>⚡ ดึงข้อมูลจาก Landmark ยอดฮิต (ถ้ามี)</label>
         <select id="presetSelector" onchange="applyPreset(this.value)">
           <option value="">-- พิมพ์เองอิสระ --</option>
         </select>
@@ -347,10 +362,7 @@
 
       <div class="form-group">
         <label>ชื่อภาษาจีน (สำหรับ Didi / Amap)</label>
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="inputChinese" placeholder="เช่น 全季酒店(上海外滩金陵东路店)">
-          <button type="button" style="background:var(--primary); color:#090A0F; border:none; padding:0 10px; border-radius:8px; font-weight:600; font-size:0.75rem; white-space:nowrap;" onclick="searchCoordsByChinese()">🔍 ดึงพิกัด</button>
-        </div>
+        <input type="text" id="inputChinese" placeholder="เช่น 全季酒店(上海外滩金陵东路店)">
       </div>
 
       <div class="form-group">
@@ -359,8 +371,12 @@
       </div>
 
       <div class="form-group">
-        <label>พิกัด หรือ ลิงก์แผนที่</label>
-        <input type="text" id="inputMap" placeholder="วางลิงก์ Amap, ลิงก์ Google หรือเลขพิกัด 31.xx, 121.xx">
+        <label>พิกัดตำแหน่ง</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="inputMap" placeholder="31.xx, 121.xx หรือกดจิ้มบนแผนที่">
+          <button type="button" style="background:#38BDF8; color:#090A0F; border:none; padding:0 12px; border-radius:8px; font-weight:600; font-size:0.78rem; white-space:nowrap; cursor:pointer;" onclick="startPickOnMap()">📍 จิ้มบนแผนที่</button>
+        </div>
+        <small style="color:var(--text-sub); font-size:0.72rem;">*ถ้าไม่รู้พิกัด แตะปุ่ม "จิ้มบนแผนที่" แล้วเอานิ้วแตะเลือกจุดได้เลย</small>
       </div>
 
       <div class="form-group">
@@ -399,6 +415,7 @@
     let currentMapDayFilter = 'All';
     let mapInstance = null;
     let markersLayer = null;
+    let isPickingLocation = false;
 
     const dayColors = {
       'Wishlist': '#A855F7',
@@ -428,32 +445,28 @@
       { name: "Pop Mart Flagship", matchTerms: ["pop mart", "ป๊อปมาร์ท", "泡泡玛特"], cn: "泡泡玛特全球旗舰店 (南京东路)", metro: "Line 2/10 - East Nanjing Rd. Exit 2", cat: "🛍️ ช้อปปิ้ง", coords: [31.2372, 121.4820] }
     ];
 
-    // ฟังก์ชันค้นหาพิกัดภาษาจีนอัตโนมัติ (จีนแท้ 100%)
-    async function searchCoordsByChinese() {
-      const cnName = document.getElementById('inputChinese').value.trim();
-      if (!cnName) return alert('กรุณากรอกชื่อภาษาจีนก่อนกดดึงพิกัดครับ');
+    function startPickOnMap() {
+      // ปิด modal ชั่วคราว และสลับไปที่หน้าแผนที่
+      document.getElementById('entryModal').style.display = 'none';
+      switchView('map', document.querySelectorAll('.nav-btn')[1]);
       
-      const btn = event.target;
-      const originalText = btn.innerText;
-      btn.innerText = '⏳ ค้นหา...';
+      const banner = document.getElementById('pickBanner');
+      if (banner) banner.style.display = 'block';
+      isPickingLocation = true;
 
-      try {
-        // ใช้ Amap Web Service Geocode ดึงพิกัดเมืองเซี่ยงไฮ้
-        const res = await fetch(`https://restapi.amap.com/v3/geocode/geo?key=8325164e247e15eea68b59e89200988b&address=${encodeURIComponent(cnName)}&city=上海`);
-        const data = await res.json();
-        if (data.status === '1' && data.geocodes && data.geocodes.length > 0) {
-          const loc = data.geocodes[0].location; // คืนค่า "lng,lat"
-          const parts = loc.split(',');
-          document.getElementById('inputMap').value = `${parts[1]}, ${parts[0]}`;
-          alert(`✅ พบพิกัดแล้ว: ${parts[1]}, ${parts[0]}`);
-        } else {
-          alert('ไม่พบพิกัดจากชื่อนี้ ลองตัดคำให้สั้นลง เช่น "全季酒店 河南南路"');
-        }
-      } catch (err) {
-        alert('เกิดข้อผิดพลาดในการดึงพิกัด: ' + err.message);
-      } finally {
-        btn.innerText = originalText;
-      }
+      // ผูกเหตุการณ์คลิกบนแผนที่เพียงครั้งเดียว
+      mapInstance.once('click', function(e) {
+        if (!isPickingLocation) return;
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+        
+        document.getElementById('inputMap').value = `${lat}, ${lng}`;
+        if (banner) banner.style.display = 'none';
+        isPickingLocation = false;
+        
+        // เปิด Modal กรอกข้อมูลกลับคืนมา
+        document.getElementById('entryModal').style.display = 'flex';
+      });
     }
 
     function extractCoordsFromUrl(url) {
@@ -470,7 +483,13 @@
           return [p1, p2];
         }
 
-        // 2. ดักกรณีวางลิงก์ Amap เว็บแบบมี center/location
+        // 2. ดักกรณีลิงก์ Amap / iframe แบบมี lng=... & lat=...
+        const amapIframeMatch = url.match(/lng=(-?\d+\.\d+)&amp;lat=(-?\d+\.\d+)/) || url.match(/lng=(-?\d+\.\d+)&lat=(-?\d+\.\d+)/);
+        if (amapIframeMatch) {
+          return [parseFloat(amapIframeMatch[2]), parseFloat(amapIframeMatch[1])];
+        }
+
+        // 3. ดักกรณีวางลิงก์ Amap เว็บแบบมี center/location
         const amapMatch = url.match(/[?&](?:center|location)=(-?\d+\.\d+),(-?\d+\.\d+)/);
         if (amapMatch) {
           let lng = parseFloat(amapMatch[1]);
@@ -478,7 +497,7 @@
           return [lat, lng];
         }
 
-        // 3. ตรวจสอบลิงก์ Google Maps แบบยาว
+        // 4. ตรวจสอบลิงก์ Google Maps แบบยาว
         const gmapMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
         if (gmapMatch) {
           return [parseFloat(gmapMatch[1]), parseFloat(gmapMatch[2])];
@@ -699,20 +718,20 @@
           coord = extractCoordsFromUrl(p.mapUrl);
         }
 
-        // 2. ถ้าไม่มี ให้ดึงจาก Landmark Database
+        // 2. ถ้าไม่มีพิกัด และตรงกับ Landmark ชื่อเป๊ะๆ ถึงจะใช้พิกัด Landmark
+        // แก้ปัญหาไม่ให้ร้านกาแฟหรือโรงแรมหลงไป The Bund
         if (!coord) {
           const found = landmarkDatabase.find(lm => {
-            return lm.matchTerms.some(term => pName === term.toLowerCase() || pName.startsWith(term.toLowerCase())) || 
+            return lm.matchTerms.some(term => pName === term.toLowerCase()) || 
                    (pCn && lm.cn === pCn);
           });
 
           if (found) {
             coord = found.coords;
-            if (!p.chineseName) p.chineseName = found.cn;
-            if (!p.metro) p.metro = found.metro;
           }
         }
 
+        // หากยังไม่มีพิกัด ให้ข้ามรายการนี้ไปเลย ไม่นำไปปักมั่ว
         if (!coord) return;
 
         bounds.push(coord);
