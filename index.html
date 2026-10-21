@@ -5,19 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Shanghai Super App 🇨🇳</title>
   
-  <!-- PWA & Mobile Meta Tags (ข้อ 3) -->
+  <!-- PWA & Mobile Meta Tags -->
   <meta name="theme-color" content="#090A0F">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Shanghai 2026">
-  <!-- PWA Inline Manifest -->
   <link rel="manifest" href="data:application/manifest+json;utf-8,%7B%22name%22%3A%22Shanghai%20Super%20App%202026%22%2C%22short_name%22%3A%22Shanghai%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23090A0F%22%2C%22theme_color%22%3A%22%23090A0F%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20100%20100'%3E%3Crect%20width%3D'100'%20height%3D'100'%20rx%3D'20'%20fill%3D'%23090A0F'%2F%3E%3Ctext%20x%3D'50'%20y%3D'65'%20font-size%3D'55'%20text-anchor%3D'middle'%3E%F0%9F%87%A8%F0%9F%87%B3%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <style>
     :root {
@@ -51,7 +49,6 @@
     h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
     .btn-config { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
 
-    /* Navigation Bar */
     .nav-tabs {
       display: flex;
       background: #0D0F17;
@@ -80,11 +77,9 @@
       font-weight: 600;
     }
 
-    /* Views */
     .view-content { display: none; padding: 16px 20px; }
     .view-content.active { display: block; }
 
-    /* Filters */
     .filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
     .filter-scroll::-webkit-scrollbar { display: none; }
     .pill-btn {
@@ -105,7 +100,6 @@
       font-weight: 600;
     }
 
-    /* Place Card */
     .place-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -126,20 +120,20 @@
     .badge-tag { font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 500; background: #1E2230; color: var(--text-sub); }
     .badge-user { font-size: 0.7rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 6px; }
 
-    /* ป้ายเตือนยังไม่ได้ปักหมุด (ข้อ 2) */
     .badge-no-coord {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      font-size: 0.75rem;
+      font-size: 0.76rem;
       font-weight: 600;
-      color: var(--warning);
-      background: var(--warning-bg);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      padding: 3px 8px;
+      color: #FBBF24;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 4px 10px;
       border-radius: 6px;
-      margin-bottom: 6px;
+      margin: 6px 0 8px;
       cursor: pointer;
+      width: fit-content;
     }
 
     .chinese-tag {
@@ -169,7 +163,6 @@
     .btn-check { background: rgba(16, 185, 129, 0.15); color: #34D399; margin-left: auto; font-weight: 600; }
     .place-card.is-done .btn-check { background: #1E2230; color: #64748B; }
 
-    /* Map Elements */
     #mapContainer { height: calc(100vh - 235px); width: 100%; border-radius: 14px; border: 1px solid var(--border); }
     .custom-map-pin {
       width: 28px;
@@ -199,7 +192,6 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
-    /* Calc & Phrases */
     .calc-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px;
     }
@@ -218,7 +210,6 @@
     .phrase-py { font-size: 0.78rem; color: var(--text-sub); font-family: 'JetBrains Mono', monospace; }
     .phrase-th { font-size: 0.85rem; color: var(--text-main); margin-top: 2px; }
 
-    /* FAB */
     .fab {
       position: fixed; bottom: 24px; right: 20px; background: var(--primary); color: #090A0F; border: none;
       padding: 14px 20px; border-radius: 30px; font-size: 0.95rem; font-weight: 600;
@@ -226,7 +217,6 @@
       display: flex; align-items: center; justify-content: center;
     }
 
-    /* Modal Form */
     .modal {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7);
       display: none; align-items: flex-end; z-index: 1000;
@@ -259,7 +249,6 @@
     </div>
   </header>
 
-  <!-- Navigation Bar -->
   <div class="nav-tabs">
     <button class="nav-btn active" onclick="switchView('itinerary', this)"><span>📋</span>แพลนเที่ยว</button>
     <button class="nav-btn" onclick="switchView('map', this)"><span>🗺️</span>แผนที่รวม</button>
@@ -293,7 +282,7 @@
     </div>
   </div>
 
-  <!-- VIEW 2: INTERACTIVE MAP (AMAP DIRECT TILES) -->
+  <!-- VIEW 2: INTERACTIVE MAP -->
   <div id="view-map" class="view-content" style="padding: 12px 16px;">
     <div id="pickBanner">📍 แตะบนแผนที่ตรงตำแหน่งร้านเพื่อปักหมุด</div>
     <div class="filter-scroll" id="mapDayFilter" style="margin-bottom: 8px;">
@@ -333,7 +322,6 @@
     <div id="phrasesList"></div>
   </div>
 
-  <!-- FAB -->
   <button class="fab" id="fabAdd" onclick="openAddModal()">+ เพิ่มสถานที่</button>
 
   <!-- Modal: Add/Edit Place -->
@@ -493,17 +481,17 @@
       });
     }
 
-    // ฟังก์ชันเช็กว่าสถานที่นี้มีพิกัดพร้อมวาดหมุดหรือไม่
     function getValidCoords(place) {
-      if (place.mapUrl) {
+      if (!place) return null;
+      if (place.mapUrl && place.mapUrl.trim() !== '') {
         const c = extractCoordsFromUrl(place.mapUrl);
-        if (c) return c;
+        if (c && c.length === 2 && !isNaN(c[0]) && !isNaN(c[1])) return c;
       }
       const pName = (place.placeName || '').trim().toLowerCase();
       const pCn = (place.chineseName || '').trim();
       const found = landmarkDatabase.find(lm => {
         return lm.matchTerms.some(term => pName === term.toLowerCase()) || 
-               (pCn && lm.cn === pCn);
+               (pCn !== '' && lm.cn === pCn);
       });
       return found ? found.coords : null;
     }
@@ -605,7 +593,6 @@
       const url = getApiUrl();
       const listEl = document.getElementById('placesList');
 
-      // ลองโหลดจาก Cache ในเครื่องก่อน (Offline first)
       const cached = localStorage.getItem('shanghai_cached_places');
       if (cached) {
         try {
@@ -627,7 +614,6 @@
       try {
         const res = await fetch(url);
         allPlaces = await res.json();
-        // บันทึกแคชเก็บไว้ใช้ตอนออฟไลน์
         localStorage.setItem('shanghai_cached_places', JSON.stringify(allPlaces));
         renderPlaces();
         if (mapInstance) updateMapMarkers();
@@ -679,8 +665,9 @@
             const card = document.createElement('div');
             card.className = 'place-card ' + (place.visited ? 'is-done' : '');
 
-            // เช็กพิกัดสำหรับการแสดงป้ายเตือน (ข้อ 2)
             const validCoords = getValidCoords(place);
+            const noCoordBadge = !validCoords ? 
+              `<div class="badge-no-coord" onclick="openEditModal(${place.rowIndex})">⚠️ ยังไม่ปักหมุดบนแผนที่ (แตะเพื่อใส่พิกัด)</div>` : '';
 
             const gmapUrl = place.mapUrl || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(place.placeName + ' Shanghai'));
             const amapUrl = 'https://uri.amap.com/search?keyword=' + encodeURIComponent((place.chineseName || place.placeName) + ' 上海');
@@ -697,7 +684,7 @@
                 <span class="badge-user">${place.addedBy || 'เพื่อน'}</span>
               </div>
 
-              ${!validCoords ? `<div class="badge-no-coord" onclick="openEditModal(${place.rowIndex})">⚠️ ยังไม่ปักหมุดบนแผนที่ (แตะเพื่อใส่พิกัด)</div>` : ''}
+              ${noCoordBadge}
               ${place.chineseName ? `<div class="chinese-tag" onclick="copyText('${place.chineseName}')">🇨🇳 ${place.chineseName} 📋</div>` : ''}
               ${place.metro ? `<div class="metro-info">🚇 ${place.metro}</div>` : ''}
               ${place.note ? `<div class="place-note">${place.note}</div>` : ''}
